@@ -10,8 +10,9 @@ The App is co-developed by Verein Offenes Lernen, ZVR 066113569 licensed by "Cre
 This repository contains the code for the app and everything that is required to improve it. For documentation please have a look at the homepage http://lernen-ist-persoenlich.blogspot.co.at/search/label/Dokumentation
 
 The content of this repository will consist of
-(*) all the client side code
-(*) the code for the open data interface
+* all the client side code
+* the code for the open data interface
+* the apps and downloable packages
 
 For the API please have a look at the article about open data: http://lernen-ist-persoenlich.blogspot.co.at/p/open-data.html
 
