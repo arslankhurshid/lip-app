@@ -1,0 +1,1650 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<link rel="shortcut icon" href="//ssl.gstatic.com/docs/spreadsheets/forms/favicon_jfk2.png" type="image/x-icon">
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+	<title>Klassentagebuch</title>
+	
+	<link href="http://fonts.googleapis.com/css?family=Brawler" rel="stylesheet" type="text/css">
+   
+<!--<link rel="stylesheet" href="css/slick.grid.css" type="text/css"/> -->
+	<link rel="stylesheet" href="css/ui.fancytree.min.css" type="text/css"/>
+	<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+	<link href="js/jtable/themes/lightcolor/gray/jtable.min.css" rel="stylesheet" type="text/css" />  
+	<link href="css/jquery.tagit.css" rel="stylesheet" type="text/css"> 
+	<link href="css/tagit.ui-zendesk.css" rel="stylesheet" type="text/css">
+	
+	<script src="js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/cordova-2.2.0.js"></script>
+	<script src="js/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script> 
+	<script src="js/jquery.jtable.min.js" type="text/javascript"></script>
+   
+	<script src="js/tag-it.min.js" type="text/javascript" charset="utf-8"></script>
+<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="js/excanvas.min.js"></script><![endif]-->   
+   	<script language="javascript" type="text/javascript" src="js/jquery.flot.js"></script>
+<!-- - BROKEN ! -- not stacking because of empty (leading) datapoints => workaround
+	<script language="javascript" type="text/javascript" src="js/jquery.flot.stack.js"></script>  -->
+	<script language="javascript" type="text/javascript" src="js/jquery.flot.pie.js"></script>
+	
+<!-- - BROKEN ! -- print button - works, but flotchart empty
+	<script src="js/jquery-migrate-1.1.1.min.js"></script>
+	<script language="javascript" type="text/javascript" src="js/jquery.print.js"></script> -->
+	<script src="js/jquery.event.drag-2.0.min.js"></script>
+<!-- - XXX REMOVE 	<script src="js/slick.core.js"></script>
+	<script src="js/slick.formatters.js"></script>
+	<script src="js/slick.grid.js"></script>  -->
+	<script src="js/jsaes.js"></script>		 <!-- AES encryption -->
+	<script src="js/bytescoutpdf.js"></script> <!-- pdf creation -->
+	<script src="js/jquery.qrcode.min.js"></script> <!-- qr-code creation -->
+	<script src="js/lip.js"></script> <!-- our stuff, add last -->	
+     
+<style type="text/css">
+    
+label.ui-state-active span.ui-button-text { font-weight: bold; } /* improves visibility of selected buttons */
+    
+table {
+	border-style: none;
+	border-color: white;
+	border-collapse: separate;
+}
+table th {
+	border-style: none;
+	border-color: white;
+}
+table td {
+	border-style: none;
+	border-color: white;
+}
+
+div.xAxis div.tickLabel {    
+	transform: rotate(45deg);
+	-ms-transform:rotate(45deg); /* IE 9 */
+	-moz-transform:rotate(45deg); /* Firefox */
+	-webkit-transform:rotate(45deg); /* Safari and Chrome */
+	-o-transform:rotate(45deg); /* Opera */
+	/*rotation-point:50% 50%;*/ /* CSS3 */
+	/*rotation:270deg;*/ /* CSS3 */
+}
+
+table.invisible { 
+	cellspacing: 0; 
+	cellpadding: 0; 
+	border: 0;
+	frame: void;
+	width: 100%;
+	border-color: white;
+	border-collapse: collapse; 
+}
+
+.percent-complete-bar {
+  display: inline-block;
+  height: 6px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+}
+
+.cell-title {
+	font-weight: bold;
+}
+
+.cell-effort-driven {
+	text-align: center;
+}
+
+.toggle {
+      height: 9px;
+      width: 9px;
+      display: inline-block;
+}
+
+.toggle.expand {
+      background: url(/images/expand.gif) no-repeat center center;
+}
+
+.toggle.collapse {
+      background: url(/images/collapse.gif) no-repeat center center;
+}
+
+.ui-button .ui-icon-crown1 { background-image: url('img/crown1.png'); }
+.ui-button .ui-icon-crown2 { background-image: url('img/crown2.png'); }
+.ui-button .ui-icon-crown3 { background-image: url('img/crown3.png'); }
+.ui-button .ui-icon-crown4 { background-image: url('img/crown4.png'); }
+.ui-button .ui-icon-crown5 { background-image: url('img/crown5.png'); }
+.ui-button .ui-icon-crown6 { background-image: url('img/crown6.png'); }
+.ui-button .ui-icon-crown7 { background-image: url('img/crown7.png'); }
+.ui-button .ui-icon-crown8 { background-image: url('img/crown8.png'); }
+.ui-button .ui-icon-crown9 { background-image: url('img/crown9.png'); }
+.ui-button .ui-icon-crown10 { background-image: url('img/crown10.png'); }
+.ui-button .ui-icon-crown11 { background-image: url('img/crown11.png'); }
+.ui-button .ui-icon-crown12 { background-image: url('img/crown12.png'); }
+.ui-button .ui-icon-crown13 { background-image: url('img/crown13.png'); }
+.ui-button .ui-icon-crown14 { background-image: url('img/crown14.png'); }
+.ui-button .ui-icon-crown15 { background-image: url('img/crown15.png'); }
+.ui-button .ui-icon-crown16 { background-image: url('img/crown16.png'); }
+.ui-button .ui-icon-crown17 { background-image: url('img/crown17.png'); }
+.ui-button .ui-icon-crown18 { background-image: url('img/crown18.png'); }
+.ui-button .ui-icon-crown19 { background-image: url('img/crown19.png'); }
+.ui-button .ui-icon-crown20 { background-image: url('img/crown20.png'); }
+.ui-button .ui-icon-crown21 { background-image: url('img/crown21.png'); }
+.ui-button .ui-icon-crown22 { background-image: url('img/crown22.png'); }
+.ui-button .ui-icon-crown23 { background-image: url('img/crown23.png'); }
+.ui-button .ui-icon-crown24 { background-image: url('img/crown24.png'); }
+.ui-button .ui-icon-crown25 { background-image: url('img/crown25.png'); }
+
+</style>
+</head>
+<body>
+<meta itemprop="name" content="Klassentagebuch">
+
+<div id="tabs">
+<ul></ul>
+<p></p>
+
+<div id="tabs-1">
+
+<form id="addActionEntry" method="POST" target="_self" onsubmit="">
+<div>
+	<div id="grp-tabs">
+  		<ul></ul>
+	</div>
+</div>
+
+<div id="accordion">
+  <h3></h3>
+
+<div>
+
+<br /> 
+
+<div id="settingRadio"></div>
+
+<br />
+  <label id="inputLabel_1" for="inputTags_1"></label>
+	<input type="text" name="entry_1" value="" id="inputTags_1" style="width:100%" />
+    <label id="inputLabel_2" for="inputTags_2"></label>
+	<input type="text" name="entry_3" value="" id="inputTags_2" style="width:100%" />
+<label id="inputLabel_3" for="inputTable_3"></label>
+<table id="inputTable_3"><tr>
+    <td><input type="hidden" id="datepicker3"></td>
+	<td width="100%"><input type="text" name="entry_4" value="" id="inputTags_3" style="width:100%" /></td>
+<!-- 	<td><input x-webkit-speech class="mike" id="mike.4"/></td>  -->
+	<td><input type="checkbox" id="g_priv" name="e-priv" /><label id="input3priv" for="g_priv"></label></td>
+	</tr></table>
+
+<div>
+<input id="submitActivityButton" type="submit" name="submit" value="submit" />
+<a href="#" id="clearForm">#</a>
+</div>
+
+<input type="hidden" name="action" value="add">
+<input type="hidden" value="" name="t" id="acc-token" />
+<input type="hidden" value="0" name="group" id="group-id" />
+<input type="hidden" value="" name="source" id="source-id" />
+<input type="hidden" value="tutor" name="role" id="role-id" />
+
+<br />
+</div>
+</form> 
+
+	<h3 id="showList"></h3>
+	<div>
+		<table class="invisible"><tr><td valign="top" width="200">
+  			<div id="datepicker"></div>
+    	</td><td valign="top" width="*">
+	  		<div id="ActionTableContainer"></div>
+	 	</td></tr></table>
+	 </div>
+</div>
+</div>
+<div id="tabs-2">
+<div id="settingCheckbox"></div>
+<br />
+<div id="subjectButtons"></div>
+<br />
+  <label for="datesAmount"></label>
+  <input type="text" id="datesAmount" style="border:0; font-weight:bold; width:100%;" size="24">
+  <input type="hidden" id="datesRange" >
+<div id="datesSlider"></div>
+<br />
+<div id="accordion-auswertung">
+  <h3 id="fetchSeries">alle</h3>
+	 <div style="overflow:auto;">
+	    "alles" dauert ein bisserl ... bitte Geduld. <br />
+ 	  	<div id="materialGraphalle" style="width:100%;height:1024px;"></div>
+     </div>
+</div>
+</div>
+<div id="tabs-3">
+<div id="accordion-group">
+  <h3></h3>
+  <div id="add-group-form">
+	<form>  
+		<label id="inputLabel_4" for="entry_6"></label>
+			<input type="text" name="entry_6" id="inputTags_6" style="width:100%" />
+		<label id="inputLabel_5" for="entry_7"></label>
+			<input type="text" name="entry_7" id="inputTags_7" style="width:100%" />
+		<label id="inputLabel_6" for="entry_8"></label>
+			<input type="text" name="entry_8" id="inputTags_8" style="width:100%" />
+		<label id="inputLabel_7" for="entry_9"></label>
+			<input type="text" name="entry_9" value="student, guest" id="inputTags_9" style="width:100%" />
+			<button id="submitNewGroup">submit</button></form> 
+</div>
+  <h3 id="my-group-section"></h3>
+  <div id="my-group-form">
+    <div id="myGroupTable" style="width:100%;height:360px"></div><br />
+	<form>  
+			<button id="addMyGroup"></button></form> 
+</div>
+</div>
+</div>
+<div id="tabs-4">
+<div id="accordion-inventory">
+  <h3></h3>
+	<div>
+<form id="addInventory" method="POST" target="_self" onsubmit="">
+<label id="inputLabel_8" for="entry_mat_name"></label>
+<input type="text" name="mat.name" value="" id="entry_mat_name">
+<label id="inputLabel_9" for="entry_inv_name"></label>
+<input type="text" name="inv.name" value="" id="entry_inv_name">
+<label id="inputLabel_10" for="entry_parent_name"></label>
+<input type="text" name="parent.name" value="" id="entry_parent_name">
+<label id="inputLabel_11" for="entry_mat_tag"></label>
+<input type="text" name="tag" value="" id="entry_mat_tag">
+<label id="inputLabel_12" for="entry_mat_ean"></label>
+<input type="text" name="ean" value="" id="entry_mat_ean">
+<label id="inputLabel_13" for="inventurButtons"></label>
+<div id="inventurButtons"></div>
+<br/>
+<label id="inputLabel_14" for="raumButtons"></label>
+<div id="raumButtons"></div>
+<br/>
+<label id="inputLabel_15" for="langButtons"></label>
+<div id="langButtons"></div>
+<br/>
+<label id="inputLabel_16" for="entry_category"></label>
+<input type="text" name="category" value="" id="entry_category">
+<label id="inputLabel_17" for="matartButtons"></label>
+<div id="matartButtons"></div>
+<br/>
+<label id="inputLabel_18" for="dauerButtons"></label>
+<div id="dauerButtons"></div>
+<br/>
+<label id="inputLabel_19" for="collaboratorsButtons"></label>
+<div id="collaboratorsButtons"></div>
+<br/>
+<label id="inputLabel_20" for="schoollevelButtons"></label>
+<div id="schoollevelButtons"></div>
+<br/>
+<label id="inputLabel_21" for="levelButtons"></label>
+<div id="levelButtons"></div>
+<br/>
+<label id="inputLabel_22" for="entry_defaultAssignment"></label>
+<input type="text" name="entry.defaultAssignment" value="works" id="entry_defaultAssignment">
+<label id="inputLabel_23" for="entry_inv_remark"></label>
+<input type="text"  name="remark" id="entry_inv_remark" />
+
+<input type="hidden" name="action" value="add">
+<input type="hidden" id="inv-source" name="t" value="n-a">
+<input type="hidden" id="inv-groups" name="groups" value="add">
+<input type="submit" name="submit" value="submit" id="submitInventory">
+</form>
+	</div>
+  <h3 id="inventarList"></h3>
+	<div>
+	  		<div id="InventarTableContainer"></div>
+    </div>
+</div>
+</div>
+</div>
+<!-- <script src="js/d3.v3.min.js"></script> <!-- data visualization -->
+<!-- <script src="js/nv.d3.min.js"></script> <!-- data visualization -->
+<script src="js/jquery.fancytree.min.js"></script> <!-- data visualization -->
+<script type="text/javascript">
+try {
+//some security checks
+//====================
+//check if we have a token
+var token = $("#acc-token").val();
+if (token.length > 1) {
+	//if we have a token set a cookie to remember ...
+	window.localStorage.setItem( 'lip-acc-t', token );
+} else {
+	//if we have no token look if we have a cookie with a token ...
+	token = window.localStorage.getItem("lip-acc-t");
+	if (typeof token == null)
+		token = "";
+	else
+		$("#acc-token").val(token);
+}
+
+//XXX --- TEMPORARY set group-hash and Teacher --- to be romoved
+var atoken = "see below"; //TESTTOKEN	
+var agroup = 0; //GROUPID
+var actors = "";
+var jqxhrT = $.getJSON('loadConfig.php?action=check&t=' + token, {}, function(data) {
+	$("#group-id").val(data.t[1]);
+	$("#inv-groups").val(data.t[2]);
+	$("#inv-source").val(data.t[3]);
+	$("#source-id").val(data.t[4]);
+	$("#role-id").val(data.t[5]);
+	agroup = data.t[1];
+	atoken = data.t[6];
+});
+
+//check if we have salt
+var saltstr = window.localStorage.getItem("lip-acc-g");
+var saltgrid = [];
+if (saltstr !== null) 
+	saltgrid = JSON.parse(saltstr);
+saltstr = null;
+
+//extracts the salt from the saltgrid	
+function getTheSalt(token, groupId)	{
+	//check if we have the salt ...	
+	var gId = groupId.toString();
+	if (gId in saltgrid) {
+		//prepare to decrypt the salt (key1)
+		var crypt = new AESchiper(token);
+		// ... and create a new key for the keyring	
+		var salt = crypt.decryptSaltedString(saltgrid[gId]);	
+		crypt.finish();	
+		return salt;
+	} else
+		return ""; //no salt
+}
+
+// the salt from the saltgrid	
+function storeTheSalt(token, salt)	{
+	//check if we have the salt ...
+	var gId = hash(salt).toString();		
+	if (gId in saltgrid) {
+		return false; //nothing to do
+	} else {
+		//prepare to encrypt the salt (key)
+		var crypt = new AESchiper(token);
+		// ... and put it into the saltgrid
+		saltgrid[gId] = crypt.encryptSaltedString(salt, 48);
+		crypt.finish();	
+		// ... and store it
+		window.localStorage.setItem( 'lip-acc-g', JSON.stringify(saltgrid) );
+		return true;
+	}
+}
+
+//LOADING CONFIG AND PERSONAL DATA
+//================================
+	
+//constructor with table of all the names
+function NameTable(atoken) {	
+	this.token = atoken;
+	this.getAllNames = getAllNames;
+	//decrypted names and hashes
+	this.allNames = [];		//all the data
+	this.allGroups = [];	//for grouping
+	this.allLabels = []; 	//for graphs
+	this.mygroupData = [];	//for my groups only
+	//initialize
+	this.getAllNames(this.token);
+
+	//private function doing the sorting and processing of names
+	this.processResult = processResult;
+	function processResult (data) {
+//alert("res");		
+    	//get yourself some keys
+    	var keyring = [];
+    	var saltring = [];
+    	var aname = "", ahash = "";
+    	//get ready for new namelist
+    	this.allNames = [];
+    	this.allGroups = [];
+    	this.allLabels = [];
+    	this.mygroupData = []; //for "my groups" table
+		//retrieve all the names from the queried group and decrypt them
+//alert(data.Names.length);		
+		for(var i=0; i<data.Names.length; i++) {		
+			//which group we belong ...
+			var gIdStr = data.GroupIds[i].toString();			
+			if (data.recordtype[i] > 0) {
+				switch (data.Roles[i]) {
+				case 'group':										
+				//do we have keys?										
+				if (gIdStr in saltgrid) {
+					//get all the group names and credentials
+					saltring[gIdStr] = getTheSalt(data.Token[i], gIdStr);
+					keyring[gIdStr] = new AESchiper( saltring[gIdStr] );
+					aname = keyring[gIdStr].decryptSaltedString(data.Names[i]);
+					ahash = hash(saltring[gIdStr].substr(28)+aname);
+					this.allLabels[ahash.toString()] = aname;
+					this.allGroups.push({ gIdStr: gIdStr, name: aname, hash: ahash, salt: saltring[gIdStr] });
+					this.allNames.push({ actual: false, name: aname, role: 'group', display: false, grpid: data.GroupIds[i], token: data.Token[i], hash: ahash });
+				} else {
+					this.allGroups.push({ gIdStr: gIdStr, name: "???", hash: 0 });
+					this.allNames.push({ actual: false, name: "???", role: 'group', display: false, grpid: data.GroupIds[i], token: data.Token[i], hash: null });
+				}
+				//check if we find the group number ... and replace it
+				for(var j=0; j<this.mygroupData.length; j++)
+					if (this.mygroupData[j].grpid == data.GroupIds[i]) {
+						//do we have keys?
+						if (gIdStr in keyring) {	
+							//decrypt and set groupname and actor name
+							this.mygroupData[j].groupname = keyring[gIdStr].decryptSaltedString(data.Names[i]);													
+							this.mygroupData[j].name = keyring[gIdStr].decryptSaltedString(this.mygroupData[j].name);
+							//add names to the general name list too
+							ahash = hash(saltring[gIdStr].substr(28)+this.mygroupData[j].name);
+							this.allLabels[ahash.toString()] = this.mygroupData[j].name;
+							this.allNames.push({ actual: this.mygroupData[j].actual, name: this.mygroupData[j].name, role: this.mygroupData[j].role, display: (this.mygroupData[j].active && (this.mygroupData[j].role != 'group')), grpid: this.mygroupData[j].grpid, token: this.mygroupData[j].token, hash: ahash });
+						} else {
+							//if we have no key we don't know the names...
+							this.mygroupData[j].name = "???";
+							//anyway add my names to the general name list too
+							this.allNames.push({ actual: this.mygroupData[j].actual, name: "???", role: this.mygroupData[j].role, display: (this.mygroupData[j].active && (this.mygroupData[j].role != 'group')), grpid: this.mygroupData[j].grpid, token: this.mygroupData[j].token, hash: null });
+						}
+						this.mygroupData[j].gtokengroup = data.Tokengroup[i];
+					} else if (this.mygroupData[j].gtokengroup == data.Tokengroup[i]) {
+						if (gIdStr in keyring) {
+							//decrypt and set groupname 
+							this.mygroupData[j].associated +=  keyring[gIdStr].decryptSaltedString(data.Names[i]) + " ";
+						} else {
+							//if we have no key we don't know the names...
+							this.mygroupData[j].associated += "<Schlüssel fehlt> ";
+						}	
+					}							
+				break;
+				//add a name - group association to the record
+				default:										
+					this.mygroupData.push({ actual: data.recordtype[i]==5, name: data.Names[i], role: data.Roles[i], groupname: "<Schlüssel fehlt>" , active: data.Active[i] , associated: "", grpid: data.GroupIds[i], token: data.Token[i], gtokengroup: null});
+				}
+			} else {
+				//add the other names to the general name list
+				if (gIdStr in keyring) {
+					aname = keyring[gIdStr].decryptSaltedString(data.Names[i]);
+					ahash = hash(saltring[gIdStr].substr(28)+aname);
+					this.allLabels[ahash.toString()] = aname;
+					this.allNames.push({ actual: data.recordtype[i]==5, name: aname, role: data.Roles[i], display: (data.Active[i] && (data.Roles[i] != 'group')), grpid: data.GroupIds[i], token: data.Token[i], hash: ahash });
+				} else
+					this.allNames.push({ actual: data.recordtype[i]==5, name: "???", role: data.Roles[i], display: (data.Active[i] && (data.Roles[i] != 'group')), grpid: data.GroupIds[i], token: data.Token[i], hash: null });
+			}		
+		}
+//alert("fin");		
+		//releasing all the keys
+		for(var k=0; k<this.allGroups.length; k++)
+			keyring[this.allGroups[k].gIdStr].finish();
+		saltring = null;
+		keyring = null;
+		
+	}
+	
+	//just load the names for a token
+	function getAllNames(atoken) {
+		this.token = atoken;
+		var anames = this;
+		if (this.token.length > 0)
+			$.ajax({
+    		type:"GET",
+	   		cache:false,
+	    	url:"ActorList.php",
+			dataType: 'json',
+		    data : { action : 'mygroups', token : this.token },
+		    success: function (result) {
+				anames.processResult(result);
+    		}
+		});
+	}	
+	
+	//just load the names for a token AND update the myNames Grid
+	this.reloadMyGroupTable = function (atoken) {
+		this.token = atoken;
+		var anames = this;
+		if (this.token.length > 0) {
+		  	$('#myGroupTable').jtable('destroy');
+	    	$('#myGroupTable').jtable({
+	        	title: 'meine Gruppen',
+	        	actions: {
+		            listAction: 'ActorList.php?action=mygroups&t=' + atoken
+		        },
+	    	    fields: {
+	        		actual: {
+	        			title: 'aktuell',
+	                	width: '6%'
+		            },
+		            name: {
+	    	            title: 'mein Name',
+	        	        width: '22%'
+	            	},
+		            role: {
+		                title: 'als',
+	    	            width: '22%'
+	        	    },
+	            	groupname: {
+		                title: 'in der Gruppe',
+		                width: '20%'
+	    	        },
+	        	    active: {
+	        			title: 'aktiv',
+	                	width: '6%'
+		            },
+		            associated: {
+	    	            title: 'verbundene Gruppen',
+	        	        width: '20%'
+	            	}
+		        }
+		    });
+	    	$('#myGroupTable').jtable('load' );  	
+		}
+	}	
+	
+}
+	
+//here is the table object with all the names in it
+var names = new NameTable(token);
+
+//alert(JSON.stringify(names));
+
+//Loading the competency framework data
+// XXX unused ?
+var competencyData = [];
+var frameworkList  = [];
+var frameworkNames = [];
+//$.ajax({
+//	url: 'CompetencyList.php?action=map&t=' + $('#acc-token').val(),
+//    dataType: 'json',
+//    async: false,
+//    success: function(data) {	
+//    	frameworkNames = data.frameworknames;
+//		frameworkList = data.frameworklist;    	
+//    }
+//});
+
+
+//CREATING THE APP UI
+//===================/
+
+var stickerXY = [57, 31, 312, 31, 57, 145, 312, 145, 57, 258, 312, 258, 57, 371, 312, 371, 57, 485, 312, 485, 57, 598, 312, 598, 57, 711, 312, 711];
+//adding a sticker for the tag printout
+function addSticker(pdf, sticker, groupId, name, qrtext, hint) {
+	if (sticker < 1) {
+		//add first header
+  		pdf.pageAdd();
+		pdf.fontSetSize(8);
+	  	pdf.textAdd(57, 12, "AVERY QR Tag Etiketten L7122, L7122-20, L7122-25 zum drucken; über diese Codes siehe http://de.wikipedia.org/wiki/QR-Code");      		    	
+  	}
+  	pdf.fontSetSize(8);
+  	pdf.textAdd(stickerXY[sticker*2], stickerXY[sticker*2+1]+4, hint);
+  	pdf.fontSetSize(16);
+	//add a text box with the name
+	pdf.textSetBox(stickerXY[sticker*2], stickerXY[sticker*2+1]+11, 122, 88);
+  	pdf.textAddToBox(name);
+  	//clear the canvas
+  	$('#tagGroup_'+groupId).empty();
+	//render the qr-code
+	$('#tagGroup_'+groupId).qrcode({render: 'canvas', bgColor: '#ffffff', width: 99, height: 99, text: qrtext});
+ 	// place the qr-code
+  	var canvas = $('#tagGroup_'+groupId).children(":first")[0];
+  	pdf.imageLoadFromCanvas(canvas);	    
+  	pdf.imagePlace(stickerXY[sticker*2]+128, stickerXY[sticker*2+1]);
+  	//add a tick
+  	if (sticker > 12) 
+  		return 0;
+  	else
+	  	return sticker+1;
+}	
+
+//adding a group to the "Group" tab accordion
+function addGroupAccordion (groupname, salt) {
+//alert("add:"+names.allNames.length);	
+    var groupId = hash(salt);	
+    var tutors = [], actors = [], others = [];
+	//retrieve all the names from the queried group 
+	for(var i=0; i<names.allNames.length; i++) {
+//alert("add:"+i+":"+names.allNames[i].role+":"+names.allNames[i].name);		
+		//check if it is an entry we are looking for
+		if (names.allNames[i].display && (names.allNames[i].grpid == groupId)) {
+			switch(names.allNames[i].role) {
+				case 'tutor':
+					tutors.push(names.allNames[i].name);
+				  	break;
+				case 'actor':
+					actors.push(names.allNames[i].name);
+				  	break;
+				case 'other':
+					others.push(names.allNames[i].name);
+					break;
+			}
+		}	
+	}
+    var tutorname = tutors.join(',');
+    var actorname = actors.join(',');
+    var othername = others.join(',');
+	//add the name to the form of the gruop within a new accordion sectiopm
+    $('#accordion-group').append('<h3 id="group_'+groupId+'">'+groupname+'</h3><div>'+
+    	'<form><label for="entry_7">'+$('#inputLabel_5').val()+'</label>'+
+    	'<input type="text" name="entry_7" id="inputTags_7_'+groupId+'" value="'+tutorname+'" style="width:100%" />'+
+    	'<label for="entry_8">'+$('#inputLabel_6').val()+'</label>'+
+    	'<input type="text" name="entry_8" id="inputTags_8_'+groupId+'" value="'+actorname+'" style="width:100%" />'+
+    	'<label for="entry_9">'+$('#inputLabel_7').val()+'</label>'+
+    	'<input type="text" name="entry_9" id="inputTags_9_'+groupId+'" value="'+othername+'" style="width:100%" />'+
+    	'<button id="printGroup_'+groupId+'">Tags für Gruppenmitglieder drucken</button></form><div id="tagGroup_'+groupId+'" align="right"></div></div>')	
+        .accordion('destroy').accordion();
+	//make the names tags
+    $('#inputTags_7_'+groupId).tagit({readOnly: true});        	
+    $('#inputTags_8_'+groupId).tagit({readOnly: true});        	
+    $('#inputTags_9_'+groupId).tagit({readOnly: true});
+    //add the print button to create the qr-codes with the credentials
+    $('#printGroup_'+groupId)
+    	.button()
+    	.click(function() {
+    //printing a group's qr tags with token & salt
+    $('#printGroup_'+groupId)
+    	.text("bitte Geduld, das PDF Dokument wird erzeugt ...")
+    	.button("disable");	
+    //create pdf document
+    var pdf = new BytescoutPDF();       	
+    pdf.propertiesSet("QR Tags für Gruppen-Mitglieder", "Schlüssel zu den Daten im LIP", "keys", "klaus@hammermueller.at", "");
+    pdf.pageSetSize(BytescoutPDF.A4);
+    var sticker = 0;
+    //first add the groupname
+    sticker = addSticker(pdf, sticker, groupId, groupname, '#s='+salt, 'Privater Schlüssel für');
+	for(var i=0; i<names.allNames.length; i++) {
+		//check if it is an entry we are looking for
+		if (names.allNames[i].grpid == groupId) {
+			switch(names.allNames[i].role) {
+				case 'tutor', 'actor', 'other':
+  		    		sticker = addSticker(pdf, sticker, groupId, names.allNames[i].name, 't='+names.allNames[i].token+'#s='+salt, 'Privater Schlüssel für');
+				  	break;
+			}
+		}	
+	}
+    //when pdf rendering is finnished - open it
+    pdf.onload(function() {
+		// get generated PDF file in a form of base64 encoded string
+    	var PDFContentBase64 = pdf.getBase64Text();
+      	// now we create links to view or download PDF file generated 						
+      	$('#printGroup_'+groupId)
+      		.text("Tags für Gruppenmitglieder drucken")
+      		.button("enable");
+      		window.location.href = 'data:application/pdf;base64,'+ PDFContentBase64;
+      	});        			       	
+	});
+	$('#tagGroup_'+groupId).qrcode({render: 'canvas', bgColor: '#ffffff', width: 99, height: 99, text: '#salt='+salt });
+	return true;
+}
+
+//set material lookup values found
+var settingMaterialValues = false;
+function setMaterialLookup (values, foundit, entry) {
+//	alert(values +"+"+ foundit +"+"+ entry);
+	if (foundit && !settingMaterialValues) {
+		settingMaterialValues = true;
+		if (entry != "mat_name")
+			$( '#entry_mat_name' )
+				.tagit('removeAll')
+				.tagit('createTag', values[5]);
+		if (entry != "inv_name")
+			$( '#entry_inv_name' )
+				.tagit('removeAll')
+				.tagit('createTag', values[6]);
+		$( '#entry_parent_name' )
+			.tagit('removeAll')
+			.tagit('createTag', values[21]);
+		if (entry != "tag") 
+			$( '#entry_mat_tag' )
+				.tagit('removeAll')
+				.tagit('createTag', values[3]);
+		if (entry != "ean") {			
+			$( '#entry_mat_ean' ).tagit('removeAll');
+			if (values[4] > 0)
+				$( '#entry_mat_ean' ).tagit('createTag', values[4]);
+		}
+		$( "input[name='inv.status']" ).removeAttr('checked').button( "refresh" );
+		var itemarr=values[19].split(","), itemcount = itemarr.length;
+		for (var i = 0; i < itemcount; i++) 
+			$( "#group_inv_status_" + itemarr[i] ).prop('checked', true).button( "refresh" );
+		$( "input[name='domain']" ).removeAttr('checked').button( "refresh" );
+		$( "input[name='domain'][value='"+values[7]+"']" ).prop('checked', true).button( "refresh" );
+		$( "input[name='lang']" ).removeAttr('checked').button( "refresh" );
+		$( "input[name='lang'][value='"+values[11]+"']" ).prop('checked', true).button( "refresh" );	
+		$( '#entry_category' )
+			.tagit('removeAll')
+			.tagit('createTag', values[8]);
+		$( "input[name='media']" ).removeAttr('checked').button( "refresh" );
+		var itemarr=values[17].split(","), itemcount = itemarr.length;
+		for (var i = 0; i < itemcount; i++) 
+			$( "#group_mat_media_" + itemarr[i] ).prop('checked', true).button( "refresh" );
+		$( "input[name='duration']" ).removeAttr('checked').button( "refresh" );
+		$( "input[name='duration'][value='"+values[13]+"']" ).prop('checked', true).button( "refresh" );
+		$( "input[name='collab']" ).removeAttr('checked').button( "refresh" );
+		var itemarr=values[9].split(","), itemcount = itemarr.length;
+		for (var i = 0; i < itemcount; i++) 
+			$( "#group_collab_" + itemarr[i] ).prop('checked', true).button( "refresh" );
+		$( "input[name='schoollevel']" ).removeAttr('checked').button( "refresh" );
+		var itemarr=values[12].split(","), itemcount = itemarr.length;
+		for (var i = 0; i < itemcount; i++) 
+			$( "#group_schoollevel_" + itemarr[i] ).prop('checked', true).button( "refresh" );
+		$( "input[name='level']" ).removeAttr('checked').button( "refresh" );
+		$( "input[name='level'][value='"+values[10]+"']" ).prop('checked', true).button( "refresh" );
+		$( '#entry_defaultAssignment' )
+			.tagit('removeAll')
+			.tagit('createTag', values[14]);
+		$( '#entry_inv_remark' )
+			.tagit('removeAll')
+			.tagit('createTag', values[18]);
+		settingMaterialValues = false;
+	}
+}
+
+//bulding the table for the "today's entries" action table
+function resetActionTable (params) {
+	//get the date of the datepicker
+	var adate = $( "#datepicker" ).val();
+    //get all the actor names currently selected
+    var actors = "";
+    $("input:checkbox[name=e-g0\\[\\]]:checked").each(function()
+    		{
+    			if (actors.length > 0) actors = actors +  ",";
+    			actors = actors + "'" + $(this).val() + "'";
+    		});	
+  	//now redefine the table with the details
+  	$('#ActionTableContainer').jtable('destroy');
+    $('#ActionTableContainer').jtable({
+        title: 'folgende Arbeit',
+        actions: {
+//TEMPORARY DEFINED var currentGroups = <server side default>
+            listAction: 'ActionList.php?action=list&t=' + token + '&date=' + adate + '&actors=' + actors + params,
+            deleteAction: 'ActionList.php?action=delete&t=' + token
+        },
+        fields: {
+            ts: {
+                key: true,
+                list: false
+            },
+            phase: {
+                title: 'wann',
+                width: '8%'
+            },
+            actor: {
+                title: 'wer',
+                width: '22%'
+            },
+            material: {
+                title: 'was',
+                width: '22%'
+            },
+            assignment: {
+                title: 'inhaltlich',
+                width: '22%'
+            },
+            remark: {
+                title: 'beobachtet',
+                width: '22%'
+            },
+//changed: add lead buttons		                
+                check: {
+                    title: '',
+                    width: '4%',
+                    sorting: false,
+                    edit: false,
+                    create: false,
+                    display: function (studentData) {
+                        //Create an image that will be used to open child table
+                        switch (Math.floor((Math.random()*7)+1)) {
+                        case 1:
+	                        var $img = $('<p />');
+	                        break;
+                        default:
+	                        var $img = $('<img src="img/check.png" title="OK" width="29" height="29" />');
+                        }
+                        //Open child table when user clicks the image
+                        $img.click(function () {
+
+                        });
+                        //Return image to show on the person row
+                        return $img;
+                    }
+                
+            }
+        }
+    });
+    //unfortunately this does not work ... $('#ActionTableContainer').jtable('load', {date: this.date, actors: actors} );
+    $('#ActionTableContainer').jtable('load' );
+}
+
+
+
+//HOOK INTO THE EVENTS
+//====================
+//here the action starts
+$(function(){
+	
+	// get all the labels for the ui
+	var jqxhr0 = $.getJSON('loadConfig.php?action=labels', {}, function(data) {
+		for(var i=0; i < data.tab.length; i++) {
+			$("#tabs").children("ul").append('<li><a id="tab'+ (i+1) + '" href="#tabs-'+ (i+1) + '">' + data.tab[i] + '</a></li>');
+		}
+        $( "#tabs" ).tabs();
+        $("#accordion").children("h3").each(function(i,j){
+        	$(this).html( data.accordion[i] )
+        });
+	   	$( "#accordion" ).accordion({
+  	      heightStyle: "content"
+  	    });
+	   	$("#accordion-group").children("h3").each(function(i,j){
+        	$(this).html( data.grpaccordion[i] )
+        });
+		$( "#accordion-group" )
+		.accordion({heightStyle: "content"})
+		.on( "accordionactivate", function( event, ui ) {
+		   	if (ui.newHeader.attr("id") == "my-group-section") {
+		   		names.reloadMyGroupTable(atoken, true);
+	    	}
+	    });	
+		$("#accordion-inventory").children("h3").each(function(i,j){
+        	$(this).html( data.invaccordion[i] )
+        });
+		$( "#accordion-inventory" ).accordion({
+		      heightStyle: "content"
+		    });  
+//XXX this will be replaced by polling names from participants list 	   		   	
+	   	var k=1;
+		for(var i=0; i < data.groupnames.length; i++) {
+			$("#grp-tabs").children("ul").append('<li><a href="#grp-'+ (i+1) + '">' + data.groupnames[i] + '</a></li>');
+			$("#grp-tabs").append('<div id="grp-'+ (i+1) + '"></div>');
+//<ul><li><a href="#">Leader</a></li><li><a href="#">Like</a></li><li><a href="#">Bully</a></li></ul>
+			var names = data.names[i];
+			for(var j=0; j < names.length; j++) {
+				$("#grp-"+ (i+1)).append('<input type="checkbox" name="e-g0[]" value="' + names[j] + '" id="g0_'+ k + '" /><label for="g0_'+ k + '">' + names[j] + '</label>');
+				$("#grp-"+ (i+1)).append('<input type="checkbox" name="e-gX[]" value="' + names[j] + '" id="gX_'+ k + '" onclick="$(this).prev().attr(\'checked\', this.checked).button(\'refresh\');" /><label for="gX_'+ k + '">+</label>');
+				//XXX - broken / not working? XXX - add the refresh for selected actors
+				$("#g0_"+k)
+					.button({ icons: {primary: null, secondary: null} })
+					.click(function(){
+						if ($( "#showList" ).accordion( "option", "active" ) !== false)
+			        	//now refresh what's already documented for today in the action table
+			    			resetActionTable ('&groups=');	
+		    		 });
+		    	$("#gX_"+k)
+        			.button({
+				         text: false,
+ 				         icons: { primary: "ui-icon-crown" + k }
+				        })
+				    .click(function() {
+//				         var menu = $( this ).parent().next().show().position({
+//				            my: "left top",
+//				            at: "left bottom",
+//				            of: this
+//				         });
+// 				         $( document ).one( "click", function() {
+ 				        	$( this ).prev()
+ 			        			.attr('checked', 'checked')
+ 			        			.button('refresh');	
+// 				           menu.hide();
+// 				         });
+				         return false;
+				        })
+//				     .parent()
+//				     .buttonset()
+//				     .next()
+//				     .hide()
+//				     .menu()
+				     ;				
+		        $("#accordion-auswertung").append('<h3>' + names[j] + '</h3><div class="graphSection1" style="overflow:auto;" name="' + names[j].replace(/ /g,"-") + '" ></div>');      
+				k++;
+			}
+			$("#grp-"+ (i+1)).append('<input type="checkbox" id="g0_all_'+ (i+1) + '" onclick="$(this).siblings( \':input\' ).attr(\'checked\', this.checked).button(\'refresh\');" /><label for="g0_all_'+ (i+1) + '">' + data.all + '</label>');			
+			$( "#grp-" + (i+1) ).buttonset();
+//			$( "#grp-" + (i+1) ).buttonset({
+//				  icons: {primary: 'ui-icon-crown1', secondary: 'ui-icon-crown2'}, text: false
+//			});
+			$( "#g0_all_" + (i+1)).button();
+		}
+		//now addign the refresh
+        $( "#grp-tabs" ).tabs();
+    	$( "#accordion-auswertung" ).accordion({
+        	heightStyle: "content",
+        	collapsible: true, active: false
+    	 }); 
+    	$("#fetchSeries").hide(); // XXX "alle" does not work right now ...
+ //XXX ---
+ 		//the settings buttons
+        var checked = "checked"; 
+		for(var i=0; i < data.settings.length; i++) {
+			if (i > 0) checked = "";
+			$("#settingRadio").append('<input type="radio" name="e-g2" ' + checked + ' value="' + data.settings[i] + '" id="g2_'+ (i+1) + '" /><label for="g2_'+ (i+1) + '">' + data.settings[i] + '</label>');
+			$("#settingCheckbox").append('<input type="checkbox" name="x-g2" ' + checked + ' value="' + data.settings[i] + '" id="x2_'+ (i+1) + '" /><label for="x2_'+ (i+1) + '">' + data.settings[i] + '</label>');
+		}
+		$( "#settingRadio").buttonset();
+		$("#settingCheckbox").buttonset();
+		checked = "checked"; 
+		for(var i=0; i < data.status.length; i++) {
+			if (i > 0) checked = "";
+			$("#inventurButtons").append('<input type="checkbox" name="inv.status" ' + checked + ' value="'+ (i+1) + '" id="group_inv_status_'+ (i+1) + '" /><label for="group_inv_status_'+ (i+1) + '">' + data.status[i] + '</label>');
+		}
+		$('#group_inv_status_'+ (i+1)).val(0); // the last element shall be 0 (removed)
+		$( "#inventurButtons").buttonset();
+		for(var i=0; i < data.domain.length; i++) {
+			$("#raumButtons").append('<input type="radio" name="domain" value="data.domain[i]" id="group_domain_'+ (i+1) + '" aria-label="' + data.domain[i] + '"><label for="group_domain_'+ (i+1) + '">' + data.domain[i] + '</label>');
+			$("#subjectButtons").append('<input type="checkbox" name="subject" value="'+data.domain[i]+'" id="group_subject_'+ (i+1) + '" aria-label="' + data.domain[i] + '"><label for="group_subject_'+ (i+1) + '">' + data.domain[i] + '</label>');	
+		}
+		$( "#raumButtons").buttonset();
+		$( "#subjectButtons").buttonset();
+		for(var i=0; i < data.lang.length; i++) {
+			var lang = data.lang[i];
+			$("#langButtons").append('<input type="radio" name="lang" value="' + lang + '" id="group_lang_'+ lang + '" aria-label="' + lang + '"><label for="group_lang_'+ lang + '">' + lang + '</label>');
+		}
+		$( "#langButtons").buttonset();
+		for(var i=0; i < data.art.length; i++) {
+			var split = data.art[i].split('|');
+			$("#matartButtons").append('<input type="checkbox" name="media" value="' + split[1] + '" id="group_mat_media_'+ split[1] + '" /><label for="group_mat_media_'+ split[1] + '">' + split[0] + '</label>');
+		}
+		$( "#matartButtons").buttonset();
+		for(var i=0; i < data.duration.length; i++) {
+			var split = data.duration[i].split('|');
+			//XXX broken:  if (i <> 1) checked = "" else checked = "checked"; 
+			$("#dauerButtons").append('<input type="radio" name="duration" ' + checked + 'value="' + split[1] + '" id="group_mat_duration_' + split[1] + '" /><label for="group_mat_duration_' + split[1] + '" >' + split[0] + '</label>');
+		}
+		$( "#dauerButtons").buttonset();
+		checked = "checked"; 
+		for(var i=0; i < data.collab.length; i++) {
+			if (i > 0) checked = "";
+			$("#collaboratorsButtons").append('<input type="checkbox" name="collab" ' + checked + ' value="'+data.collab[i]+'" id="group_collab_'+ (i+1) + '" /><label for="group_collab_'+ (i+1) + '">'+data.collab[i]+'</label>');
+		}
+		$('#group_collab_'+ (i+1)).val('X'); // manny
+		$( "#collaboratorsButtons").buttonset();
+		for(var i=0; i < data.schoollevel.length; i++) {
+			$("#schoollevelButtons").append('<input type="checkbox" name="" value="'+ i + '" id="group_schoollevel_'+ i + '" /><label for="group_schoollevel_'+ i + '">'+data.schoollevel[i]+'</label>');
+		}
+		$( "#schoollevelButtons").buttonset();
+		for(var i=0; i < data.level.length; i++) {
+			$("#levelButtons").append('<input type="radio" name="level" value="'+data.level[i]+'" id="group_level_'+data.level[i]+'" /><label for="group_level_'+data.level[i]+'">'+data.level[i]+'</label>');
+		}
+		$( "#levelButtons").buttonset();		
+		//the tag input field labels
+		for(var i=0; i < data.input.length; i++) {
+			$( "#inputLabel_" + (i+1)).html(data.input[i]);			
+		}
+		//default values
+		$( "#inputTags_9")
+		  .val(data.guests)
+		  .tagit({allowSpaces: true});
+		$( "#entry_defaultAssignment")
+		  .val(data.assignment)
+		  .tagit({
+		    availableTags: detailTags,
+//		    availableTags: competencyList,
+		    allowSpaces: true
+		  });	
+		//the submit & privacy buttons
+		$( "#input3priv").html(data.priv);
+		$( "#g_priv" ).button({icons: {
+		    primary: "ui-icon-unlocked" }
+		    })
+		    .click(function() {
+		    	if (this.checked) {
+		    	     $(this).button("option", "icons", { primary: 'ui-icon-locked' });
+		    	   } else {
+		    	     $(this).button("option", "icons", { primary: 'ui-icon-unlocked' });
+		    	   }
+		    });
+		$( "#submitActivityButton").val(data.submit);
+		$( "#submitNewGroup")
+		  .html(data.submit)
+		  .button();
+		$( "#submitInventory").val(data.submit);
+		//an clear form button ...
+		$( "#clearForm" )
+		  .html(data.clear)
+		  .button()
+		  .click(function( event ) {
+			event.preventDefault();
+		    location.reload();
+		  }); 
+    	//add key
+    	$( "#addMyGroup" )
+    	  .html(data.addkey)
+    	  .button();
+	});
+
+
+	
+	// get all the names from the material list for the autocomplete lookup
+	// XXX TEMPORARY HARDCODED groups=<server side default>
+	var jqxhr = $.getJSON('MaterialList.php?action=list&t=' + $('#acc-token').val() + '&groups=', {}, function(data) {
+        	$('#inputTags_1').tagit({
+          		availableTags: data.Records,
+          		allowSpaces: true
+      		});
+        	$('#entry_inv_name').tagit({
+          		availableTags: data.Records,
+          		allowSpaces: true,
+          		afterTagAdded: function(event, ui) {
+          			$.ajax({
+          				url: 'MaterialList.php?t=' + $('#acc-token').val() + '&action=get&groups=&inv_name=' + ui.tagLabel,
+          		    	dataType: 'json',
+          		    	async: false,
+          		    	success: function(data) {
+          		    		setMaterialLookup(data.data, data.foundit, "inv_name");
+          		    	}
+          			});
+                }
+      		});
+	});
+
+	var jqxhr3 = $.getJSON('MaterialList.php?action=listall&t=' + $('#acc-token').val(), {}, function(data) {
+    	$('#entry_mat_name').tagit({
+      		availableTags: data.Records,
+      		allowSpaces: true,
+      		afterTagAdded: function(event, ui) {
+      			$.ajax({
+      				url: 'MaterialList.php?t=' + $('#acc-token').val() + '&action=get&groups=&mat_name=' + ui.tagLabel,
+      		    	dataType: 'json',
+      		    	async: false,
+      		    	success: function(data) {
+      		    		setMaterialLookup(data.data, data.foundit, "mat_name");
+      		    	}
+      			});
+            }
+  		});
+    	$('#entry_parent_name').tagit({
+      		availableTags: data.Records,
+      		allowSpaces: true
+  		});    	
+	});
+	
+	var categoryList = new Array();
+	var detailTags = new Array();
+	var bemerkungTags = new Array();
+	var monthList = new Array();
+	
+	// get all the tags for the ui
+	var jqxhr4 = $.getJSON('loadConfig.php?action=tags', {}, function(data) {
+		//categories --- may be replaced soon
+		categoryList = data.category;
+		$('#entry_category').tagit({
+		    availableTags: categoryList,
+		    allowSpaces: true
+		});
+		//details		
+		detailTags = data.detail;
+		$('#inputTags_2').tagit({
+		    availableTags: detailTags,
+		    allowSpaces: true
+		});
+		//remarks
+		bemerkungTags = data.remark;
+		$('#inputTags_3').tagit({
+		    availableTags: bemerkungTags,
+		    allowSpaces: true
+		});
+		monthList = data.month;
+	});
+	
+	
+
+	var datesList = new Array();
+	var datesLabels = new Array();
+	
+	// get all the labels for the dat range slider
+	// XXX temporary - groups to be set here instead server side
+	var jqxhr5 = $.getJSON('loadConfig.php?action=dates&groups=', {}, function(data) {
+	datesList = data.dates;
+	datesLabels = data.labels;
+	$( "#datesSlider" ).slider({
+	      range: true,
+	      min: 0,
+	      max: data.datasets-1 ,
+	      values: [ 0, data.schoolstart-1 ],
+	      slide: function( event, ui ) {
+	        $( "#datesAmount" ).val( datesLabels[ ui.values[ 0 ]] + " - " + datesLabels[ui.values[ 1 ]] );
+		    $( "#datesRange" ).val( datesList[  ui.values[ 0 ] ] + "," + datesList[ui.values[ 1 ]] );
+	      }
+	    });
+	    $( "#datesAmount" ).val( datesLabels[  0 ] + " - " + datesLabels[data.schoolstart-1 ] );
+	    $( "#datesRange" ).val( datesList[  0 ] + "," + datesList[data.schoolstart-1 ] );
+	  });
+	
+		
+    $( "#datepicker3" ).datepicker({
+        showOn: "button",
+        buttonImage: "img/calendar.png",
+        buttonImageOnly: true,
+        dateFormat: "yy-mm-dd",
+		onSelect: function(dateText) {
+			  	$("#inputTags_3").tagit("createTag", dateText);
+			 }
+      });
+
+
+$('#entry_mat_tag').tagit({
+		afterTagAdded: function(event, ui) {
+			$.ajax({
+				url: 'MaterialList.php?t=' + $('#acc-token').val() + '&action=get&groups=&tag=' + ui.tagLabel,
+		    	dataType: 'json',
+		    	async: false,
+		    	success: function(data) {
+		    		setMaterialLookup(data.data, data.foundit, "tag");
+		    	}
+			});
+    }
+});
+$('#entry_mat_ean').tagit({
+		afterTagAdded: function(event, ui) {
+			$.ajax({
+				url: 'MaterialList.php?t=' + $('#acc-token').val() + '&action=get&groups=&ean=' + ui.tagLabel,
+		    	dataType: 'json',
+		    	async: false,
+		    	success: function(data) {
+		    		setMaterialLookup(data.data, data.foundit, "ean");
+		    	}
+			});
+    }
+});
+
+
+$('#entry_inv_remark').tagit({
+    allowSpaces: true
+});
+
+//variable to hold request
+var addActionEntryRequest;
+// bind to the submit event of our form
+$("#addActionEntry").submit(function(event){
+    // abort any pending request
+    if (addActionEntryRequest) {
+    	addActionEntryRequest.abort();
+    }
+    // setup some local variables
+    var $form = $(this);
+    // let's select and cache all the fields
+    var $inputs = $form.find("input, select, button, textarea");
+    // serialize the data in the form
+    var serializedData = $form.serialize();
+
+    // let's disable the inputs for the duration of the ajax request
+    $inputs.prop("disabled", true);
+
+    // fire off the request to /form.php
+    addActionEntryRequest = $.ajax({
+        url: "ActionList.php",
+        type: "post",
+        data: serializedData
+    });
+
+    // callback handler that will be called on success
+    addActionEntryRequest.done(function (response, textStatus, jqXHR){
+        // log a message to the console
+        // alert("Zum Tagebuch hinzugefügt!" + response + "," + textStatus);
+        
+    });
+
+    // callback handler that will be called on failure
+    addActionEntryRequest.fail(function (jqXHR, textStatus, errorThrown){
+        // log the error to the console
+        alert(
+            "The following error occured: "+
+            textStatus, errorThrown
+        );
+    });
+
+    // callback handler that will be called regardless
+    // if the request failed or succeeded
+    addActionEntryRequest.always(function () {
+        // reenable the inputs
+        $inputs.prop("disabled", false);
+        $( "input[name='e-g0[]']" ).removeAttr('checked').button( "refresh" );
+        $( "input[name='e-gX[]']" ).removeAttr('checked').button( "refresh" );
+        $("#inputTags_1").tagit('removeAll');
+        $("#inputTags_2").tagit('removeAll');
+        $("#inputTags_3").tagit('removeAll');
+    });
+
+    // prevent default posting of form
+    event.preventDefault();
+});
+
+//variable to hold request
+var addInventoryRequest;
+// bind to the submit event of our form
+$("#addInventory").submit(function(event){
+    // abort any pending request
+    if (addInventoryRequest) {
+    	addInventoryRequest.abort();
+    }
+    // setup some local variables
+    var $form = $(this);
+    // let's select and cache all the fields
+    var $inputs = $form.find("input, select, button, textarea");
+    // serialize the data in the form
+    var serializedData = $form.serialize();
+
+    // let's disable the inputs for the duration of the ajax request
+    $inputs.prop("disabled", true);
+
+    // fire off the request to /form.php
+    addInventoryRequest = $.ajax({
+        url: "MaterialList.php",
+        type: "post",
+        data: serializedData
+    });
+
+    // callback handler that will be called on success
+    addInventoryRequest.done(function (response, textStatus, jqXHR){
+        // log a message to the console
+//        alert("Zum Inventar hinzugefügt!" + response + "," + textStatus);
+    });
+
+    // callback handler that will be called on failure
+    addInventoryRequest.fail(function (jqXHR, textStatus, errorThrown){
+        // log the error to the console
+        alert(
+            "The following error occured: "+
+            textStatus, errorThrown
+        );
+    });
+
+    // callback handler that will be called regardless
+    // if the request failed or succeeded
+    addInventoryRequest.always(function () {
+        // reenable the inputs
+        $inputs.prop("disabled", false);
+        $("#entry_mat_name").tagit('removeAll');
+        $("#entry_inv_name").tagit('removeAll');
+        $("#entry_parent_name").tagit('removeAll');
+        $("#entry_mat_tag").tagit('removeAll');
+        $("#entry_mat_ean").tagit('removeAll');
+		$( "input[name='inv.status']" ).removeAttr('checked').button( "refresh" );
+		$( "input[name='domain']" ).removeAttr('checked').button( "refresh" );
+		$( "input[name='lang']" ).removeAttr('checked').button( "refresh" );
+		$( '#entry_category' ).tagit('removeAll');
+		$( "input[name='media']" ).removeAttr('checked').button( "refresh" );
+		$( "input[name='duration']" ).removeAttr('checked').button( "refresh" );
+		$( "input[name='duration'][value='min']" ).prop('checked', true).button( "refresh" );
+		$( "input[name='collab']" ).removeAttr('checked').button( "refresh" );
+		$( "input[name='schoollevel']" ).removeAttr('checked').button( "refresh" );
+		$( "input[name='level']" ).removeAttr('checked').button( "refresh" );
+		$( '#entry_defaultAssignment' )
+			.tagit('removeAll')
+			.tagit('createTag', "arbeitet");
+        $("#entry_inv_remark").tagit('removeAll');
+		settingMaterialValues = false;        
+    });
+
+    // prevent default posting of form
+    event.preventDefault();
+});
+
+	$('#entry_4').tagit({allowSpaces: true});
+	
+	$('#inputTags_6').tagit({allowSpaces: true});
+	$('#inputTags_7').tagit({allowSpaces: true});
+	$('#inputTags_8').tagit({allowSpaces: true});
+		
+	$( "#submitNewGroup").click(function ( event ) {
+	    event.preventDefault();
+	    var newSalt = generateRandomString(42);           
+	    var crypt = new AESchiper(newSalt);
+	    var groupId = hash(newSalt);
+		var groupName = $('#inputTags_6').val();
+		if (groupName.length < 1) {
+			var currentTime = new Date();
+			groupName = "Gruppe "+generateRandomString(1)+" vom " + currentTime.getDate() +". " + monthList[currentTime.getMonth()] +" " + currentTime.getFullYear();
+		}
+		var gNameEncrypt = crypt.encryptSaltedString( groupName, 48);
+	    var tutorNames = [];
+	    if ($('#inputTags_7').val().length > 1)
+	    	tutorNames = crypt.encryptSaltedArray( $('#inputTags_7').val().split(','), 48);
+	    var actorNames = [];
+	    if ($('#inputTags_8').val().length > 1)
+	        actorNames = crypt.encryptSaltedArray( $('#inputTags_8').val().split(','), 48);
+	    var otherNames = [];
+	    if ($('#inputTags_9').val().length > 1)
+		       otherNames = crypt.encryptSaltedArray( $('#inputTags_9').val().split(','), 48); 
+	    $.ajax({
+	        type:"GET",
+	        cache:false,
+	        url:"ActorList.php",
+	    	dataType: 'json',
+	        data : { action : 'insert', groupId : groupId, groupName: gNameEncrypt, tutorNames : tutorNames, actorNames : actorNames, otherNames : otherNames },
+	        success: function (result) {
+	        	//if it's in the database secure the new salt         
+	        	storeTheSalt(result.GroupToken, newSalt);
+	        	//refreshing all the names
+	var btoken = result.GroupToken;    
+	//alert("get");            	
+				names.getAllNames(btoken); 
+	//alert("add");            	
+	        	//build a new section
+				addGroupAccordion(groupName, newSalt);
+	//alert("done");            	
+	        	//clear the form
+				$('#inputTags_6').tagit('removeAll');
+				$('#inputTags_7').tagit('removeAll');
+				$('#inputTags_8').tagit('removeAll');
+				$('#inputTags_9')
+					.tagit('removeAll')
+					.attr("value", "Student,Gast");			
+				//add the question to remind printing the tags ...
+				$('#add-group-form').append('<div id="dialog-confirm_'+groupId+'" title="Tags für die Gruppe gleich drucken?">'+
+				  	'<p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>Die privaten Schlüssel für die Gruppenmitglieder sind nur auf diesem Gerät gespeichert. Bitte drucken Sie sie zur Sicherheit gleich aus!</p></div>');			
+				$( '#dialog-confirm_'+groupId ).dialog({
+				      resizable: false,
+				      width:480,
+				      height:260,
+				      modal: true,
+				      buttons: {
+				        Ok: function() {
+				          $( this ).dialog( "close" );
+				          $("#accordion-group").accordion( "option", "active", -1 );
+				        }
+				      }
+				    });				
+	        }
+	      });
+	    crypt.finish();       
+	  });  
+	
+	
+	$( "#datepicker" ).datepicker({
+		  dateFormat: "yy-mm-dd",
+		  onSelect: function(dateText) {
+			  	resetActionTable('&groups=');
+			  }
+			});
+
+
+});
+
+$(document).ready(function() {
+			
+		//inserting a dummy table for the today's entries to the action table
+		 $('#ActionTableContainer').jtable({
+	            title: 'folgende Arbeit'
+	        });
+		 
+		 //Load Action list from server	
+			 $("#showList").click(function(){
+			        //now show me what's already documented for today in the action table
+			    	resetActionTable ('&groups=');	
+		     });
+
+			 $('#InventarTableContainer').jtable({
+		            title: 'Inventar',
+		            actions: {
+	// TEMPORARY DEFINED var currentGroups = <server side default>	            	
+		                listAction: 'MaterialList.php?action=inventory&t=' + token + '&groups=',
+		                deleteAction: 'MaterialList.php?action=delete&t=' + token + '&groups=',
+		                updateAction: 'MaterialList.php?action=copy&t=' + token + '&group=' + agroup
+		            },
+		            fields: {
+		                tag: {
+		                    key: true,
+		                    list: false
+		                },
+		                fullname: {
+		                    title: 'Name',
+		                    width: '25%',
+		                    edit: false
+		                },
+		                name: {
+		                    title: 'Genannt',
+		                    width: '25%'
+		                },
+		                domain: {
+		                    title: 'Raum',
+		                    width: '15%',
+		                    edit: false
+		                },
+		                category: {
+		                    title: 'Kategorie',
+		                    width: '15%',
+		                    edit: false
+		                },
+		                status: {
+		                    title: 'Status',
+		                    width: '15%',
+		                    edit: false
+		                },
+		             // changed: add lead buttons		                
+		                inventory: {
+		                    title: 'Hamma',
+		                    width: '5%',
+		                    sorting: false,
+		                    edit: false,
+		                    create: false,
+		                    display: function (data) {
+		                        //Create an image that will be used to open child table
+		                        if (data.record.inventory == "1") {
+			                        var $img = $('<img src="img/check.png" title="OK" width="29" height="29" />');
+		                        } else {
+			                        var $img = $('<p />');
+		                        }
+		                        //Open child table when user clicks the image
+		                        $img.click(function () {
+
+		                        });
+		                        //Return image to show on the person row
+		                        return $img;
+		                    }
+		                }
+		            },
+		            recordUpdated: function(event, data){
+			            //after record updation, reload the records
+		            	data.record.inventory = "1";
+			        }
+		        });
+			 
+			 //Load Inventory list from server	
+				 $("#inventarList").click(function(){
+			          $('#InventarTableContainer').jtable('load');
+			     });
+		 
+		 //change button style to jquery UI
+		 $(function() {
+    		$( "input[type=submit]" )
+      			.button()
+  		  });
+//- BROKEN ! -- print button - works, but flotchart empty 
+		 $(function() {
+	    		$( ".printButton" )
+	      			.button()
+	      			.click(function() {
+	      				$('div[name='+$(this).attr('target')+']').printElement();
+	      		});
+	  		  });
+		   
+}); 
+
+		//ALL ABOUT THE DATA VISUALISATION
+		//--------------------------------
+		$(function () {
+		    var options = {
+//		        bars: { show: true },
+		        legend: { show: false },
+		        xaxis: { tickDecimals: 0, tickSize: 1, },
+		        yaxis: { tickDecimals: 0, tickSize: 1 }
+		    };
+		    var data = [];
+		    var placeholder = $("#materialGraphalle");
+		    
+		    $.plot(placeholder, data, options);
+		    		    
+		    // insert the html for the section before it get's opened
+		    
+		    $( "#accordion-auswertung" ).on( "accordionbeforeactivate", function( event, ui ) {
+		    	var actor = ui.newHeader.text();	    	
+		    	var currentName = ui.newHeader.next().attr('name');
+				if ( $('#sumGraph'+currentName).length < 1)
+		    		ui.newHeader.next().append('<h4>was wann</h4><table class="invisible"><tr><td valign="top" width="200">'+
+	  					'<div id="sumGraph'+currentName+'" style="width:240px;height:240px"></div><br />'+
+	  		    		'</td><td valign="top" width="*">'+
+	  		  			'<div id="phaseGraph'+currentName+'" style="height:240px"></div><br />'+
+	  		 			'</td></tr></table>'+
+	  		 		 	'<h4>womit</h4>'+
+	  		 		  	'<div id="materialGraph'+currentName+'" style="width:100%;height:360px"></div><br />'+
+	  		 		 	'<h4>inhaltlich</h4>'+
+	  		 		  	'<div id="categoryGraph'+currentName+'" style="width:100%;height:360px"></div><br />'+
+	  		 		 	'<h4>mit wem</h4>'+
+			 		  	'<div id="collaborateGraph'+currentName+'" style="width:100%;height:360px"></div><br />'+
+			 		  	'<h4>Kompetenzen</h4>'+
+			 		  	'<div id="competencyAccordion'+currentName+'" style="width:100%;height:auto"><div id="competencyTable" style="width:100%;height:auto" /></div><br />' +
+			 		  	'<button class="detailButton" id="detail'+currentName+'"  target="'+actor+'">Details einblenden</button>'+
+//- BROKEN ! -- print button - works, but flotchart empty
+//			 		  	'<button class="printButton" id="print'+currentName+'"  target="'+currentName+'">drucken</button>'+
+			 		  	'<div id="detailTable'+currentName+'"></div>'
+					);
+	            //add the competency visualization
+	             $("#competencyAccordion"+currentName).fancytree({
+	            	 autoCollapse: false,
+	            	 clickFolderMode: 3,
+	            	 tabbable: true, // Whole tree behaves as one single control
+	            	 source: {
+      					// XXX group-id needs to be replaced with individual groups
+        					url: "CompetencyList.php?action=query&actor=" + currentName + "&groups=" + $('#group-id').val() + "&framework=&t=" + $('#acc-token').val()
+						}
+    			 });
+	        });
+		    
+		    // fetch the data and draw the graphs within the section
+
+		    
+			$( "#accordion-auswertung" ).on( "accordionactivate", function( event, ui ) {
+		        
+		        // find the URL in the link right next to us
+		        var actor = ui.newHeader.text();
+		        var phase = "";
+		        $("input:checkbox[name=x-g2]:checked").each(function()
+		        		{
+		        			if (phase.length > 0) phase = phase +  ",";
+		        			phase = phase + "'" + $(this).val() + "'";
+		        		});
+		        var subject = "";
+		        $("input:checkbox[name=subject]:checked").each(function()
+		        		{
+		        			if (subject.length > 0) subject = subject +  ",";
+		        			subject = subject + "'" + $(this).val() + "'";
+		        		});
+		        var daterange = $( "#datesRange" ).val();
+		        var dataurl = 'AnalysisList.php?action=material&actor=' + actor + '&t=' + token + '&phase=' + phase + '&subject=' + subject + '&range=' + daterange + '&groups=';
+		        // then fetch the data with jQuery
+		        function onDataReceived(series) {      
+//alert(series.query);		        	
+		            // and plot all we got for WOMIT 
+		            placeholder = $("#materialGraph" + series.about);
+   		            placeholder.width(64 + 32*series.tickCount);
+		            $.plot(placeholder, series.data, {
+				        legend: { show: false },
+				        xaxis: {tickDecimals: 0, tickSize: 1, ticks: series.ticks },
+				        yaxis: { tickDecimals: 0, tickSize: 1 }
+				    });
+		         	// and plot all we got for WANN	-WAS
+   		            placeholder = $("#phaseGraph" + series.about);
+   		            placeholder.width(64 + 32*series.phaseCount);
+		            $.plot(placeholder, series.phaseData, {
+				        legend: { show: false },
+				        xaxis: { tickDecimals: 0, tickSize: 1, ticks: series.phaseTicks },
+				        yaxis: { tickDecimals: 0, tickSize: 1 }
+				    });
+		            // and plot the summary top left 
+		            placeholder = $("#sumGraph" + series.about);
+		            $.plot(placeholder, series.phaseSum, {
+		            			series: {
+		            				pie: { 
+		            					show: true,
+		            					radius: 1,
+		            					label: {
+		            						show: true,
+		            						radius: 3/4,
+		            						formatter: function(label, series){
+		            							return '<div style="font-size:8pt;text-align:center;padding:2px;color:white;">'+label+'<br/>'+Math.round(series.percent)+'%</div>';
+		            						},
+		            						background: { 
+		            							opacity: 0.5,
+		            							color: '#000'
+		            						}
+		            					}
+		            				}
+		            			},
+		            			legend: {
+		            				show: false
+		            			}
+		            		});
+		         // and plot all we got for inhaltlich 
+		            placeholder = $("#categoryGraph" + series.about);
+   		            placeholder.width(64 + 32*series.categoryCount);
+		            $.plot(placeholder, series.categoryData, {
+				        legend: { show: false },
+				        xaxis: {tickDecimals: 0, tickSize: 1, ticks: series.categoryTicks },
+				        yaxis: { tickDecimals: 0, tickSize: 1 }
+				    });
+		         // and plot all we got for MIT WEM 
+		            placeholder = $("#collaborateGraph" + series.about);
+   		            placeholder.width(64 + 32*series.collaborateCount);
+		            $.plot(placeholder, series.collaborateData, {
+				        legend: { show: false },
+				        xaxis: {tickDecimals: 0, tickSize: 1, ticks: series.collaborateTicks },
+				        yaxis: { tickDecimals: 0, tickSize: 1 }
+				    });
+		            
+
+		            //get individual diary for actor on button click request
+		    		$( "#detail" + series.about )
+	      			.button()
+	      			.click(function() {
+	      				 var name = $(this).attr('target');
+	      				 $('#detailTable'+name).jtable({
+	      		            title: 'Tagebucheintragungen',
+// -- BROKEN -> server side sorting? ---
+//	      		          	sorting: true,
+//							defaultSorting: 'ts DESC',
+	      		            actions: {
+	      		            	listAction: 'ActionList.php?action=detail&actor='+name+'&t=' + token + '&phase=' + phase + '&subject=' + subject + '&range=' + daterange + '&groups='
+	      		            },
+	      		            fields: {
+	      		                ts: {
+	      		                	title: 'am',
+	      		                    width: '6%',
+	      		                  	sorting: true
+	      		                },
+	      		                phase: {
+	      		                    title: 'wann',
+	      		                    width: '6%',
+	      		                  	sorting: true
+	      		                },
+	      		                actor: {
+	      		                    title: 'mit',
+	      		                    width: '22%',
+	      		                  	sorting: true
+	      		                },
+	      		                material: {
+	      		                    title: 'was',
+	      		                    width: '22%',
+	      		                  	sorting: true
+	      		                },
+	      		                assignment: {
+	      		                    title: 'inhaltlich',
+	      		                    width: '22%'
+	      		                },
+	      		                remark: {
+	      		                    title: 'beobachtet',
+	      		                    width: '22%',
+	      		                  	sorting: true
+	      		                },
+	      		            }
+	      		        });
+	      				$('#detailTable'+name).jtable('load');
+	      				$(this).hide();
+	      			});
+		         }
+		        
+		        $.ajax({
+		            url: dataurl,
+		            method: 'GET',
+		            dataType: 'json',
+		            success: onDataReceived
+		        });
+		    });
+		    
+		});
+} catch (err) {
+	alert(err);
+}		
+</script>
+</body></html>
