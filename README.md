@@ -1,7 +1,7 @@
 lip-app
 =======
 
-This is the source of the "Lernen ist Persönlich" project, co-funded in parts by netidee.at and in parts by the European Commission through the next-tell.eu project.
+This is the source of the "Lernen ist Persönlich" project, co-funded in parts by http://netidee.at and in parts by the European Commission through the next-tell.eu project.
 
 The home-page of the project is http://lip-app.eu, news can be fount on our blog http://lernen-ist-persoenlich.blogspot.co.at
 
