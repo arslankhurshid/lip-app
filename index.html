@@ -565,9 +565,12 @@ try {
 	}          
 //some security checks
 //====================
+var home = "http://log.lip-app.eu/";
 //check if we have a token
 //var token = $("#acc-token").val();
 var token = getUrlParameter("t");
+if (!(undefined != token))
+    token = "";
 if (token.length > 1) {
 	//if we have a token set a cookie to remember ...
 	window.localStorage.setItem( 'lip-acc-t', token );
@@ -593,7 +596,7 @@ var atoken = "see below"; //TESTTOKEN
 var agroup = 0; //GROUPID
 var actors = "";
 //get the core data about the token user and his/her groups and role => access rights
-var jqxhrT = $.getJSON('loadConfig.php?action=check&t=' + token, {}, function(data) {
+var jqxhrT = $.getJSON(home + 'loadConfig.php?action=check&t=' + token, {}, function(data) {
 	$("#group-id").val(data.group);
 	$("#group-id2").val(data.group);
 	$("#inv-groups").val(data.groups);
@@ -628,7 +631,7 @@ function getTheSalt(token, groupId)	{
 		return salt;
 	} else
 		// look if there is a debug salt available
-		$.get('loadConfig.php?action=dsalt&t=' + token, {}, function(results){
+		$.get(home + 'loadConfig.php?action=dsalt&t=' + token, {}, function(results){
   			return results.dSalt; // return what we got
 		});
 		// return ""; //no salt
@@ -778,7 +781,7 @@ function NameTable(atoken) {
 			$.ajax({
     		type:"GET",
 	   		cache:false,
-	    	url:'ActorList.php?t=' + atoken,
+	    	url:home + 'ActorList.php?t=' + atoken,
 			dataType: 'json',
 		    data : { action : 'mygroups', token : this.token },
 		    success: function (result) {
@@ -803,7 +806,7 @@ function NameTable(atoken) {
 				  paging: false,
 			      ordering: true,
 			      ajax: {
-			      	url: 'ActorList.php?action=mygroups&t=' + atoken,
+			      	url: home + 'ActorList.php?action=mygroups&t=' + atoken,
 		            type: 'GET'
 		          },
 		          autoWidth: false,
@@ -829,7 +832,7 @@ var competencyData = [];
 var frameworkList  = [];
 var frameworkNames = [];
 //$.ajax({
-//	url: 'CompetencyList.php?action=map&t=' + $('#acc-token').val(),
+//	url: home + 'CompetencyList.php?action=map&t=' + $('#acc-token').val(),
 //    dataType: 'json',
 //    async: false,
 //    success: function(data) {	
@@ -1046,7 +1049,7 @@ function resetActionTable (params) {
   	//now redefine the table with the logbook details
   	if (logbookDataTable != null) {
   		// reload with new data
-  		logbookDataTable.ajax.url( 'ActionList.php?action=list&t=' + token + '&date=' + adate + '&actors=' + actors + params ).load(); 		
+  		logbookDataTable.ajax.url( home + 'ActionList.php?action=list&t=' + token + '&date=' + adate + '&actors=' + actors + params ).load();
   	} else {	
   		// create new table
   		logbookDataTable = $('#logbookActionTable').DataTable({
@@ -1056,7 +1059,7 @@ function resetActionTable (params) {
 		  paging: false,
 	      ordering: true,
 	      ajax: {
-	      	url: 'ActionList.php?action=list&t=' + token + '&date=' + adate + '&actors=' + actors + params,
+	      	url: home + 'ActionList.php?action=list&t=' + token + '&date=' + adate + '&actors=' + actors + params,
             type: 'GET'
           },
           columnDefs: [ {
@@ -1133,7 +1136,7 @@ function resetActionTable (params) {
         	      buttons: {
         	        "weg damit": function() {
         	        	$.ajax({
-        	        		url: 'ActionList.php',
+        	        		url: home + 'ActionList.php',
         	                type: "post",
         	                data: serializedData
         	            });
@@ -1169,7 +1172,7 @@ $(function(){
     }];
  	
 	// get all the labels for the ui
-	var jqxhr0 = $.getJSON('loadConfig.php?action=labels&t=' + token, {}, function(data) {
+	var jqxhr0 = $.getJSON(home + 'loadConfig.php?action=labels&t=' + token, {}, function(data) {
 		for(var i=0; i < data.tab.length; i++) {
 			$("#tabs").children("ul").append('<li><a id="tab'+ (i+1) + '" href="#tabs-'+ (i+1) + '">' + data.tab[i] + '</a></li>');
 		}
@@ -1279,7 +1282,7 @@ $(function(){
 						  paging: false,
 					      ordering: false,
 					      ajax: {
-					      	url: 'CompetencyList.php?action=grid&t='+token+'&names=' + clearNames.join(','),
+					      	url: home + 'CompetencyList.php?action=grid&t='+token+'&names=' + clearNames.join(','),
 			        	    type: 'GET',
 			            	data : function(d) { d.columns = null; d.order = null; } // not push column info
 				          },
@@ -1376,7 +1379,7 @@ $(function(){
 					  paging: false,
 				      ordering: true,
 				      ajax: {
-				      	url: 'ActionList.php?action=detail&actor='+actor+'&t=' + token,
+				      	url: home + 'ActionList.php?action=detail&actor='+actor+'&t=' + token,
 			            type: 'GET'
 			          },
 			          // autoWidth: false,
@@ -1418,7 +1421,7 @@ $(function(){
   							},
   							eventSources: [
   							  {
-  						        url: 'ActionCal.php',
+  						        url: home + 'ActionCal.php',
   						        type: 'POST',
   					    	    data: {
   					        		action: 'json',
@@ -1593,7 +1596,7 @@ $(function(){
 
 	
 	// get all the names from the material list for the autocomplete lookup
-	var jqxhr = $.getJSON('MaterialList.php?action=list&t=' + $('#acc-token').val(), {}, function(data) {
+	var jqxhr = $.getJSON(home + 'MaterialList.php?action=list&t=' + $('#acc-token').val(), {}, function(data) {
         	$('#inputTags_1').tagit({
           		availableTags: data.Records,
           		allowSpaces: true, 
@@ -1608,7 +1611,7 @@ $(function(){
           		afterTagAdded: function(event, ui) {
           			if (!settingMaterialValues)
           				$.ajax({
-          					url: 'MaterialList.php?t=' + $('#acc-token').val() + '&action=get&groups=&inv_name=' + ui.tagLabel,
+          					url: home + 'MaterialList.php?t=' + $('#acc-token').val() + '&action=get&groups=&inv_name=' + ui.tagLabel,
           		    		dataType: 'json',
           		    		async: false,
           		    		success: function(data) {
@@ -1620,7 +1623,7 @@ $(function(){
       		});
 	});
 
-	var jqxhr3 = $.getJSON('MaterialList.php?action=listall&t=' + $('#acc-token').val(), {}, function(data) {
+	var jqxhr3 = $.getJSON(home + 'MaterialList.php?action=listall&t=' + $('#acc-token').val(), {}, function(data) {
     	$('#entry_mat_name').tagit({
       		availableTags: data.Records,
       		allowSpaces: true,
@@ -1630,7 +1633,7 @@ $(function(){
       		afterTagAdded: function(event, ui) {
       			if (!settingMaterialValues)
 	      			$.ajax({
-    	  				url: 'MaterialList.php?t=' + $('#acc-token').val() + '&action=get&groups=&mat_name=' + ui.tagLabel,
+    	  				url: home + 'MaterialList.php?t=' + $('#acc-token').val() + '&action=get&groups=&mat_name=' + ui.tagLabel,
       			    	dataType: 'json',
       			    	async: false,
       		    		success: function(data) {     			
@@ -1653,7 +1656,7 @@ $(function(){
 	var monthList = new Array();
 	
 	// get all the tags for the ui
-	var jqxhr4 = $.getJSON('loadConfig.php?action=tags&t=' + token, {}, function(data) {
+	var jqxhr4 = $.getJSON(home + 'loadConfig.php?action=tags&t=' + token, {}, function(data) {
 		//categories --- may be replaced soon
 		categoryList = data.category;
 		$('#entry_category').tagit({
@@ -1665,7 +1668,7 @@ $(function(){
 		detailTags = data.detail;
 		// SSS if not secundaria mode
 		if (data.lookupEvidence) {
-				var jqxhr2 = $.getJSON('EvidenceList.php?action=list&t=' + $('#acc-token').val() + '&groups=' + $('#group-id').val(), {}, function(data2) {
+				var jqxhr2 = $.getJSON(home + 'EvidenceList.php?action=list&t=' + $('#acc-token').val() + '&groups=' + $('#group-id').val(), {}, function(data2) {
 		       		$('#inputTags_2').tagit({
 	         			availableTags: data2.Records,
 	         			allowSpaces: true, 
@@ -1701,7 +1704,7 @@ $(function(){
 	
 	// get all the labels for the dat range slider
 	// XXX temporary - groups to be set here instead server side
-	var jqxhr5 = $.getJSON('loadConfig.php?action=dates&t=' + token + '&groups=', {}, function(data) {
+	var jqxhr5 = $.getJSON(home + 'loadConfig.php?action=dates&t=' + token + '&groups=', {}, function(data) {
 	datesList = data.dates;
 	datesLabels = data.labels;
 	$( "#datesSlider" ).slider({
@@ -1737,7 +1740,7 @@ $('#entry_mat_tag').tagit({
 		afterTagAdded: function(event, ui) {
 			if (!settingMaterialValues);
 				$.ajax({
-					url: 'MaterialList.php?t=' + $('#acc-token').val() + '&action=get&groups=&tag=' + ui.tagLabel,
+					url: home + 'MaterialList.php?t=' + $('#acc-token').val() + '&action=get&groups=&tag=' + ui.tagLabel,
 		   	 	dataType: 'json',
 		 	   	async: false,
 			    	success: function(data) {
@@ -1754,7 +1757,7 @@ $('#entry_mat_ean').tagit({
 		afterTagAdded: function(event, ui) {
 			if (!settingMaterialValues)
 				$.ajax({
-					url: 'MaterialList.php?t=' + $('#acc-token').val() + '&action=get&groups=&ean=' + ui.tagLabel,
+					url: home + 'MaterialList.php?t=' + $('#acc-token').val() + '&action=get&groups=&ean=' + ui.tagLabel,
 			    	dataType: 'json',
 		    		async: false,
 		    		success: function(data) {
@@ -1791,7 +1794,7 @@ $("#addActionEntry").submit(function(event){
 
     // fire off the request to /form.php
     addActionEntryRequest = $.ajax({
-        url: "ActionList.php",
+        url: home + "ActionList.php",
         type: "post",
         data: serializedData,
         success: function( text ) {
@@ -1851,7 +1854,7 @@ $("#addActionEntry2").submit(function(event){
 	//alert(serializedData);
     // fire off the request to /form.php
     addActionEntryRequest2 = $.ajax({
-        url: "ActionList.php",
+        url: home + "ActionList.php",
         type: "post",
         data: serializedData,
         success: function( text ) {
@@ -1916,7 +1919,7 @@ $("#addInventory").submit(function(event){
 
     // fire off the request to /form.php
     addInventoryRequest = $.ajax({
-        url: "MaterialList.php",
+        url: home + "MaterialList.php",
         type: "post",
         data: serializedData
     });
@@ -2000,7 +2003,7 @@ $("#addInventory").submit(function(event){
 	    $.ajax({
 	        type:"GET",
 	        cache:false,
-	        url:'ActorList.php&t=' + token,
+	        url: home + 'ActorList.php&t=' + token,
 	    	dataType: 'json',
 	        data : { action : 'insert', groupId : groupId, groupName: gNameEncrypt, tutorNames : tutorNames, actorNames : actorNames, otherNames : otherNames },
 	        success: function (result) {
@@ -2083,9 +2086,9 @@ $(document).ready(function() {
 				  paging: false,
 			      ordering: true,
 			      ajax: {
-			      	url: 'MaterialList.php?action=inventory&t=' + token + '&groups=' + agroup,
-			      	// deleteAction: 'MaterialList.php?action=delete&t=' + token + '&groups=' + agroup,
-		            // updateAction: 'MaterialList.php?action=copy&t=' + token + '&group=' + agroup
+			      	url: home + 'MaterialList.php?action=inventory&t=' + token + '&groups=' + agroup,
+			      	// deleteAction: home + 'MaterialList.php?action=delete&t=' + token + '&groups=' + agroup,
+		            // updateAction: home + 'MaterialList.php?action=copy&t=' + token + '&group=' + agroup
 		            type: 'GET'
 		          },
 		          columnDefs: [ {
@@ -2112,9 +2115,9 @@ $(document).ready(function() {
 				  paging: false,
 			      ordering: true,
 			      ajax: {
-			      	url: 'MaterialList.php?action=inventory&t=' + token + '&groups=' + agroup + '&status=2',
-			      	// deleteAction: 'MaterialList.php?action=delete&t=' + token + '&groups=' + agroup,
-		            // updateAction: 'MaterialList.php?action=copy&t=' + token + '&group=' + agroup
+			      	url: home + 'MaterialList.php?action=inventory&t=' + token + '&groups=' + agroup + '&status=2',
+			      	// deleteAction: home + 'MaterialList.php?action=delete&t=' + token + '&groups=' + agroup,
+		            // updateAction: home + 'MaterialList.php?action=copy&t=' + token + '&group=' + agroup
 		            type: 'GET'
 		          },
 		          columnDefs: [ {
@@ -2141,9 +2144,9 @@ $(document).ready(function() {
 				  paging: false,
 			      ordering: true,
 			      ajax: {
-			      	url: 'MaterialList.php?action=inventory&t=' + token + '&groups=' + agroup + '&status=4',
-			      	// deleteAction: 'MaterialList.php?action=delete&t=' + token + '&groups=' + agroup,
-		            // updateAction: 'MaterialList.php?action=copy&t=' + token + '&group=' + agroup
+			      	url: home + 'MaterialList.php?action=inventory&t=' + token + '&groups=' + agroup + '&status=4',
+			      	// deleteAction: home + 'MaterialList.php?action=delete&t=' + token + '&groups=' + agroup,
+		            // updateAction: home + 'MaterialList.php?action=copy&t=' + token + '&group=' + agroup
 		            type: 'GET'
 		          },
 		          "columnDefs": [ {
@@ -2263,7 +2266,7 @@ $(document).ready(function() {
 		            	      },
 		            	 source: {
 	      					// XXX group-id needs to be replaced with individual groups
-	        					url: "CompetencyList.php?action=query&actor=" + currentName + "&framework=&t=" + $('#acc-token').val()
+	        					url: home + "CompetencyList.php?action=query&actor=" + currentName + "&framework=&t=" + $('#acc-token').val()
 							}
 	    			 });		 
 			});
@@ -2286,7 +2289,7 @@ $(document).ready(function() {
 		        			subject = subject + "'" + $(this).val() + "'";
 		        		});
 		        var daterange = $( "#datesRange" ).val();
-		        var dataurl = 'AnalysisList.php?action=material&actor=' + actor + '&t=' + token + '&phase=' + phase + '&subject=' + subject + '&range=' + daterange ;
+		        var dataurl = home + 'AnalysisList.php?action=material&actor=' + actor + '&t=' + token + '&phase=' + phase + '&subject=' + subject + '&range=' + daterange ;
 		        // then fetch the data with jQuery
 		        function onDataReceived(series) {      
 //alert(series.query);		        	
