@@ -19,6 +19,7 @@ function hash(str) {
 
 //base64 encoding chars for url (last two chars are non-standard)
 var base64_chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-.";
+
 //generate a random base64 string
 function generateRandomString(len) {
 	var randomString = '';
@@ -31,11 +32,14 @@ function generateRandomString(len) {
 //constructor for a crypto object to en/decrypt names, requires a base64 encoded key
 function AESchiper(myKey) {
 	//init
+	var prime_key = "B3zwia5bO7y-6vGHu.0rZoMq"; // prime
 	AES_Init();
 	this.chars = base64_chars;
 	this.url2bin = url2bin;
+	if (typeof myKey === 'undefined' || myKey === null)
+		myKey = prime_key;
 	this.keyHash = hash(myKey);
-	var aKey = myKey + "B3zwia5bO7y-6vGHu.0rZoMq"; // prime
+	var aKey = myKey + prime_key;
 	this.key = this.url2bin(aKey.substr(0,24)).slice(0,16);
 	AES_ExpandKey(this.key);
 
@@ -54,30 +58,46 @@ function AESchiper(myKey) {
 	
 	//these functions you want to call
 	this.encryptSaltedString = function ( myString, saltedLength ) {
-		var len = saltedLength;
-		if (len < 1)
-			len = myString.length + 2;
-		var str = myString.substr(0, len-2).replace('|',''); 
-		str += "|" + generateRandomString(len-1-str.length);
-		var data=[];
-		for(var i=0;i<len;i=i+16){
-			data = data.concat( this.encrypt(str.substr(i,16)));
-		}
-		return this.bin2url( data );
+		if (typeof myString === 'undefined' || myString === null)
+			myString = "";
+		if (ENCRYPT_DATA) {
+			var len = saltedLength;
+			if (len < 1)
+				len = myString.length + 2;
+			var str = myString.substr(0, len-2).replace('|',''); 
+			str += "|" + generateRandomString(len-1-str.length);
+			var data=[];
+			for(var i=0;i<len;i=i+16){
+				data = data.concat( this.encrypt(str.substr(i,16)));
+			}
+			return this.bin2url( data );
+		} else
+			return myString;
 	}
 	
-	this.decryptSaltedString = function ( myString ) {				
-		var arr = this.url2bin( myString );		
-		var data='';
-		var i, j, len = arr.length;	
-		for( i=0;i < len; i=i+16) {
-			data+=this.decrypt(arr.slice(i,i+16));			
-		}			
-		return data.split("|")[0];
+	this.decryptSaltedString = function ( myString ) {		
+		if (typeof myString === 'undefined' || myString === null)
+			myString = "";
+		if (ENCRYPT_DATA) {
+			var arr = this.url2bin( myString );		
+			var data='';
+			var i, j, len = arr.length;	
+			for( i=0;i < len; i=i+16) {
+				data+=this.decrypt(arr.slice(i,i+16));			
+			}
+			var res = data.split("|");
+			if (res.length < 2)
+				return "?";
+			else
+				return res[0];
+		} else
+			return myString;
 	}
 
-	this.encryptSaltedArray = function  ( myArray, saltedLength ) {	
-		var result = myArray;
+	this.encryptSaltedArray = function  ( myArray, saltedLength ) {
+		var result = [];
+		if (!(typeof myArray === 'undefined' || myArray === null))
+			result = myArray;
 		for(var i = 0;i < result.length;i++) {
 			var s = $.trim(result[i]);
 			result[i] = this.encryptSaltedString(s, saltedLength);
@@ -85,6 +105,17 @@ function AESchiper(myKey) {
 		return result;
 	}	
 	
+	this.decryptSaltedArray = function  ( myArray ) {	
+		var result = [];
+		if (!(typeof myArray === 'undefined' || myArray === null))
+			result = myArray;
+		for(var i = 0;i < result.length;i++) {
+			var s = result[i];
+			result[i] = this.decryptSaltedString( s );
+	  	}
+		return result;
+	}	
+		
 	//destructor
 	this.finish = function (){
 		AES_Done();

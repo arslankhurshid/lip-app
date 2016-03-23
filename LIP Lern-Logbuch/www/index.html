@@ -19,9 +19,19 @@
 	<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
 	<link rel="stylesheet" type="text/css" href="css/fullcalendar.min.css">
  	 
+<!-- PHONEGAP BEGIN --> 	 
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+<!-- PHONEGAP END --> 	 
+ 	 
   <script src="js/jquery.min.js" type="text/javascript" charset="utf-8"></script> 
 <!--	<script src="js/jquery-2.1.3.min.js" type="text/javascript" charset="utf-8"></script> -->
-	<script src="js/cordova-2.2.0.js"></script>
 	<script src="js/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script> 
 	<script type="text/javascript" charset="utf8" src="js/jquery.dataTables.min.js"></script>
 <!-- 	<script type="text/javascript" src="js/dataTables.fixedColumns.min.js"></script>  -->
@@ -272,6 +282,10 @@ div.dataTables_wrapper {
     line-height: 24px;
 }
 
+.dd-selected-image { 
+		margin-top: -8px; 
+	}
+	
 </style>
 </head>
 <body>
@@ -431,6 +445,7 @@ div.dataTables_wrapper {
 </div>
 </div>
 <div id="tabs-7">
+	<button id="addMyGroup"></button>
 	<div id="accordion-group">
 		<h3></h3>
  		<div id="add-group-form">
@@ -448,9 +463,8 @@ div.dataTables_wrapper {
 		</div>
 		<h3 id="my-group-section"></h3>
 		<div id="my-group-form">
-    		<div id="myGroupTable" style="width:100%;height:360px"></div><br />
 			<form>  
-			<button id="addMyGroup"></button>
+    		<table id="myGroupTable" class="cell-border stripe" cellspacing="0" width="100%" height="360px"></table>
 			</form> 
 		</div>
 	</div>
@@ -565,7 +579,11 @@ try {
 	}          
 //some security checks
 //====================
-var home = "http://log.lip-app.eu/";
+var home = "http://log.lip-app.eu/"; // app version
+//var home = ""; // online version
+// encrypt
+var ENCRYPT_DATA = true;
+
 //check if we have a token
 //var token = $("#acc-token").val();
 var token = getUrlParameter("t");
@@ -577,18 +595,30 @@ if (token.length > 1) {
 } else {
 	//if we have no token look if we have a cookie with a token ...
 	token = window.localStorage.getItem("lip-acc-t");
-	if (typeof token == null)
+	if ((typeof token == null) || (token == null))
 		token = "";
 	else
 		$("#acc-token").val(token);
 }
 
 //-- if a student uses it - we simplyfy the UI
-var aStudent = ""; // if a student uses it - we simplyfy the UI
+var aStudent = 0; // if a student uses it - we simplyfy the UI
 
-//get clear name (dummy)
-function breakEncryption(crypt) {
-	return crypt;
+var defaultCrypt = new AESchiper(null);
+
+//get clear name 
+function getClearName(crypt) {
+	if (ENCRYPT_DATA) {
+		return defaultCrypt.decryptSaltedString(crypt); ;	
+	} else
+		return crypt;
+}
+
+function getClearNames(crypt) {
+	if (ENCRYPT_DATA) {
+		return defaultCrypt.decryptSaltedArray(crypt); ;	
+	} else
+		return crypt;
 }
 
 //XXX --- TEMPORARY set group-hash and Teacher --- to be romoved
@@ -608,7 +638,7 @@ var jqxhrT = $.getJSON(home + 'loadConfig.php?action=check&t=' + token, {}, func
 	agroup = data.group;
 	atoken = data.token;
 	if ((data.role == "actor") || (data.role == "other"))
-		aStudent = breakEncryption(data.name);
+		aStudent = data.id;
 });
 
 //check if we have salt
@@ -671,6 +701,8 @@ var inventoryDataTable = new Array(null, null, null);
 
 //Clearname List
 var clearNames = [];
+var actorIds = [];
+var actorGroups = [];
 
 //constructor with table of all the names
 function NameTable(atoken) {	
@@ -694,54 +726,67 @@ function NameTable(atoken) {
     	var aname = "", ahash = "";
     	//get ready for new namelist
     	this.allNames = [];
+    	this.nameTableData = [];
     	this.allGroups = [];
     	this.allLabels = [];
     	this.mygroupData = []; //for "my groups" table
-		//retrieve all the names from the queried group and decrypt them
-//alert(data.Names.length);		
-		for(var i=0; i<data.Names.length; i++) {		
+		//retrieve all the names from the queried group and decrypt them	
+		for(var i=0; i<data.data.length; i++) {		
 			//which group we belong ...
-			var gIdStr = data.GroupIds[i].toString();			
-			if (data.recordtype[i] > 0) {
-				switch (data.Roles[i]) {
+			var gIdStr = data.data[i][4].toString();		    // GroupId
+			if (data.data[i][7] > 0) {						// recordtype
+				switch (data.data[i][2]) {					// Roles
 				case 'group':										
 				//do we have keys?										
-				if (gIdStr in saltgrid) {
+				if (!ENCRYPT_DATA || (gIdStr in saltgrid)) {
 					//get all the group names and credentials
-					saltring[gIdStr] = getTheSalt(data.Token[i], gIdStr);
-					keyring[gIdStr] = new AESchiper( saltring[gIdStr] );
-					aname = keyring[gIdStr].decryptSaltedString(data.Names[i]);
-					ahash = hash(saltring[gIdStr].substr(28)+aname);
+// XXX WORK AROUND
+keyring[gIdStr] = defaultCrypt;
+saltring[gIdStr] = defaultCrypt.aKey;
+					// saltring[gIdStr] = getTheSalt(data.data[i][3], gIdStr);	//Token
+					// keyring[gIdStr] = new AESchiper( saltring[gIdStr] );
+					aname = keyring[gIdStr].decryptSaltedString(data.data[i][1]); //name
+					if (ENCRYPT_DATA)
+						ahash = hash(saltring[gIdStr].substr(28)+aname);
+					else
+						ahash = hash(aname);
 					this.allLabels[ahash.toString()] = aname;
 					this.allGroups.push({ gIdStr: gIdStr, name: aname, hash: ahash, salt: saltring[gIdStr] });
-					this.allNames.push({ actual: false, name: aname, role: 'group', display: false, grpid: data.GroupIds[i], token: data.Token[i], hash: ahash });
+					this.allNames.push({ actual: false, name: aname, role: 'group', display: false, grpid: data.data[i][4], token: data.data[i][3], hash: ahash });  //GroupIds[i], .Token[i]
+					this.nameTableData.push([ data.data[i][4], data.data[i][11], data.data[i][0], true, aname, 'group', data.data[i][3] ]);
 				} else {
 					this.allGroups.push({ gIdStr: gIdStr, name: "???", hash: 0 });
-					this.allNames.push({ actual: false, name: "???", role: 'group', display: false, grpid: data.GroupIds[i], token: data.Token[i], hash: null });
+					this.allNames.push({ actual: false, name: "???", role: 'group', display: false, grpid: data.data[i][4], token: data.data[i][3], hash: null }); //GroupIds[i], .Token[i]
+					this.nameTableData.push([ data.data[i][4], data.data[i][11], data.data[i][0], true, "???", 'group', data.data[i][3] ]);
 				}
 				//check if we find the group number ... and replace it
 				for(var j=0; j<this.mygroupData.length; j++)
-					if (this.mygroupData[j].grpid == data.GroupIds[i]) {
+					if (this.mygroupData[j].grpid == data.data[i][4]) {	// GroupIds[i]
 						//do we have keys?
-						if (gIdStr in keyring) {	
+						if (!ENCRYPT_DATA || (gIdStr in keyring)) {	
 							//decrypt and set groupname and actor name
-							this.mygroupData[j].groupname = keyring[gIdStr].decryptSaltedString(data.Names[i]);													
+							this.mygroupData[j].groupname = keyring[gIdStr].decryptSaltedString(data.data[i][1]);	// name												
 							this.mygroupData[j].name = keyring[gIdStr].decryptSaltedString(this.mygroupData[j].name);
 							//add names to the general name list too
-							ahash = hash(saltring[gIdStr].substr(28)+this.mygroupData[j].name);
+							if (ENCRYPT_DATA)
+								ahash = hash(saltring[gIdStr].substr(28)+this.mygroupData[j].name);
+							else
+								ahash = hash(this.mygroupData[j].name);
 							this.allLabels[ahash.toString()] = this.mygroupData[j].name;
 							this.allNames.push({ actual: this.mygroupData[j].actual, name: this.mygroupData[j].name, role: this.mygroupData[j].role, display: (this.mygroupData[j].active && (this.mygroupData[j].role != 'group')), grpid: this.mygroupData[j].grpid, token: this.mygroupData[j].token, hash: ahash });
+							this.nameTableData.push([ this.mygroupData[j].grpid, data.data[i][11], 0, this.mygroupData[j].actual, this.mygroupData[j].name, this.mygroupData[j].role, this.mygroupData[j].token ]);
 						} else {
 							//if we have no key we don't know the names...
 							this.mygroupData[j].name = "???";
 							//anyway add my names to the general name list too
 							this.allNames.push({ actual: this.mygroupData[j].actual, name: "???", role: this.mygroupData[j].role, display: (this.mygroupData[j].active && (this.mygroupData[j].role != 'group')), grpid: this.mygroupData[j].grpid, token: this.mygroupData[j].token, hash: null });
+							this.nameTableData.push([ this.mygroupData[j].grpid, data.data[i][11], 0, this.mygroupData[j].actual, "???", this.mygroupData[j].role, this.mygroupData[j].token ]);
 						}
-						this.mygroupData[j].gtokengroup = data.Tokengroup[i];
-					} else if (this.mygroupData[j].gtokengroup == data.Tokengroup[i]) {
+						this.mygroupData[j].gtokengroup = data.data[i][6]; // Tokengroup
+					} else if (this.mygroupData[j].gtokengroup == data.data[i][6]) { // Tokengroup
 						if (gIdStr in keyring) {
 							//decrypt and set groupname 
-							this.mygroupData[j].associated +=  keyring[gIdStr].decryptSaltedString(data.Names[i]) + " ";
+							this.mygroupData[j].associated +=  keyring[gIdStr].decryptSaltedString(data.data[i][1]) + " "; // name
 						} else {
 							//if we have no key we don't know the names...
 							this.mygroupData[j].associated += "<Schlüssel fehlt> ";
@@ -750,17 +795,23 @@ function NameTable(atoken) {
 				break;
 				//add a name - group association to the record
 				default:										
-					this.mygroupData.push({ actual: data.recordtype[i]==5, name: data.Names[i], role: data.Roles[i], groupname: "<Schlüssel fehlt>" , active: data.Active[i] , associated: "", grpid: data.GroupIds[i], token: data.Token[i], gtokengroup: null});
+					this.mygroupData.push({ actual: data.data[i][7]==5, name: data.data[i][1], role: data.data[i][2], groupname: "<Schlüssel fehlt>" , active: data.data[i][5] , associated: "", grpid: data.data[i][4], token: data.data[i][3], gtokengroup: null });
 				}
 			} else {
 				//add the other names to the general name list
 				if (gIdStr in keyring) {
-					aname = keyring[gIdStr].decryptSaltedString(data.Names[i]);
-					ahash = hash(saltring[gIdStr].substr(28)+aname);
+					aname = keyring[gIdStr].decryptSaltedString(data.data[i][1]); // name
+					if (ENCRYPT_DATA)
+						ahash = hash(saltring[gIdStr].substr(28)+aname);
+					else
+						ahash = hash(aname);
 					this.allLabels[ahash.toString()] = aname;
-					this.allNames.push({ actual: data.recordtype[i]==5, name: aname, role: data.Roles[i], display: (data.Active[i] && (data.Roles[i] != 'group')), grpid: data.GroupIds[i], token: data.Token[i], hash: ahash });
-				} else
-					this.allNames.push({ actual: data.recordtype[i]==5, name: "???", role: data.Roles[i], display: (data.Active[i] && (data.Roles[i] != 'group')), grpid: data.GroupIds[i], token: data.Token[i], hash: null });
+					this.allNames.push({ actual: data.data[i][7]==5, name: aname, role: data.data[i][2], display: (data.data[i][5] && (data.data[i][2] != 'group')), grpid: data.data[i][4], token: data.data[i][3], hash: ahash });
+					this.nameTableData.push([ data.data[i][4], data.data[i][11], data.data[i][0], data.data[i][7]==5, aname, data.data[i][2], data.data[i][3] ]);
+				} else {
+					this.allNames.push({ actual: data.data[i][7]==5, name: "???", role: data.data[i][2], display: (data.data[i][5] && (data.data[i][2] != 'group')), grpid: data.data[i][4], token: data.data[i][3], hash: null });					
+					this.nameTableData.push([ data.data[i][4], data.data[i][11], data.data[i][0], data.data[i][7]==5, "???", data.data[i][2], data.data[i][3] ]);
+				}
 			}		
 		}
 //alert("fin");		
@@ -779,11 +830,11 @@ function NameTable(atoken) {
 		var anames = this;
 		if (this.token.length > 0)
 			$.ajax({
-    		type:"GET",
-	   		cache:false,
-	    	url:home + 'ActorList.php?t=' + atoken,
+    		type: "GET",
+	   		cache: false,
+	    	url: home + 'ActorList.php',
 			dataType: 'json',
-		    data : { action : 'mygroups', token : this.token },
+		    data: { t: atoken, action: 'mygroups', token: this.token },
 		    success: function (result) {
 				anames.processResult(result);
     		}
@@ -801,16 +852,28 @@ function NameTable(atoken) {
 				// create new table
 				myGroupsDataTable = $('#myGroupTable').DataTable({
 				  serverSide: false,
-				  processing: true,
+				  processing: false,
 			      searching: false,
 				  paging: false,
-			      ordering: true,
-			      ajax: {
-			      	url: home + 'ActorList.php?action=mygroups&t=' + atoken,
-		            type: 'GET'
-		          },
-		          autoWidth: false,
-		          columns: [{name: 'aktuell', width: "6%"},{name: 'mein Name',width: "22%"},{name: 'als', width: "22%"},{name: 'in der Gruppe', width: "20%"},{name: 'aktiv', width: "6%"},{name: 'verbundene Gruppen', width: "20%"}],
+			      ordering: false,
+			      data: this.nameTableData,
+ 		          autoWidth: false,
+		          columnDefs: [ {
+		              targets: [0,1,2,3],
+		              visible: false
+		            },{
+		                    render: function ( data, type, row ) {
+		                      	//Create an image that will be used to open child table
+		                          return '<span class="fa fa-pencil-square-o fa-2x fa-cog" title="edit"></span>';
+		                       },
+		                      targets: 7
+		              },{
+		                  render: function ( data, type, row ) {
+		                  	//Create an image that will be used to open child table
+		                      return '<span class="fa fa-trash-o fa-2x fa-cog" title="delete"></span>';
+		                   },
+		                  targets: 8
+		              }],
 		     	  scrollX: "95%",
 		     	  scrollY: false,
 		          scrollCollapse: true
@@ -821,8 +884,7 @@ function NameTable(atoken) {
 }
 	
 //here is the table object with all the names in it
-// XXX
-// var names = new NameTable(token);
+var names = new NameTable(token);
 
 //alert(JSON.stringify(names));
 
@@ -1045,7 +1107,13 @@ function resetActionTable (params) {
     		{
     			if (actors.length > 0) actors = actors +  ",";
     			actors = actors + "'" + $(this).val() + "'";
-    		});	
+    		});
+    if (actors == "")
+    	$("input:checkbox.inputFormNames").each(function()
+        		{
+        			if (actors.length > 0) actors = actors +  ",";
+        			actors = actors + "'" + $(this).val() + "'";
+        		});
   	//now redefine the table with the logbook details
   	if (logbookDataTable != null) {
   		// reload with new data
@@ -1068,6 +1136,18 @@ function resetActionTable (params) {
             },{
                 targets: [2,6,7,8],
                 orderable: false
+              },{
+                  render: function ( data, type, row ) {
+                  	//Display Clearnames instead of id's
+                  	  var ids = data.split(",");
+                  	  var anz = ids.length;
+                  	  var names = [];
+                  	  for (idx = 0; idx < anz; ++idx) {
+                  		 names.push( clearNames[ actorIds.indexOf( ids[ idx ] ) ] );
+                  	  }
+                      return names.join(", ");
+                   },
+                  targets: 2
               },{
                   render: function ( data, type, row ) {
                     	//Create an image that will be used to open child table
@@ -1114,10 +1194,10 @@ function resetActionTable (params) {
         		$( "#inputTags_1").tagit('createTag', tags[i]);
         	var tags = studentData[5].split(", ");
         	for (var i = 0; i < tags.length; i++)
-        		$( "#inputTags_2").tagit('createTag', tags[i]);
+        		$( "#inputTags_3").tagit('createTag', tags[i]);
         	var tags = studentData[4].split(",");
         	for (var i = 0; i < tags.length; i++)
-        		$( "#inputTags_3").tagit('createTag', tags[i]);
+        		$( "#inputTags_2").tagit('createTag', tags[i]);
         	$(".logbookNames").prop("checked", false);
         	for (var i = 0; i < names.length; i++)
         		$(".inputFormNames[value='" + names[i] + "']").prop("checked", true).button("refresh");
@@ -1162,6 +1242,8 @@ function resetActionTable (params) {
 //here the action starts
 $(function(){
 
+	$( document ).tooltip();
+	
 	//language buttons - default
 	var ddLang = [
     {
@@ -1182,12 +1264,25 @@ $(function(){
 	       			docuListTables[0].columns.adjust().draw();	// ensure columns fit
     		}
         });
-        if (aStudent.length > 0) // in student mode we disable the admin tabs
+        if (aStudent > 0) // in student mode we disable the admin tabs
         	$( "#tabs" )
         		.tabs('disable', 1)
-        		.tabs('disable', 5)
-        		.tabs('disable', 7)
-        		.tabs('disable', 8);
+//        		.tabs('disable', 5)
+        		.tabs('disable', 6)
+        		.tabs('disable', 7);
+		//remarks
+		bemerkungTags = data.remark;
+		$('#inputTags_3').tagit({
+		    availableTags: bemerkungTags,
+		    allowSpaces: true, 
+		  	showAutocompleteOnFocus: false
+		});
+		$('#inputTags_23').tagit({
+		    availableTags: bemerkungTags,
+		    allowSpaces: true, 
+		  	showAutocompleteOnFocus: true
+		});
+        // accordion groups
  	   	$("#accordion-group").children("h3").each(function(i,j){
         	$(this).html( data.grpaccordion[i] )
         });
@@ -1209,34 +1304,40 @@ $(function(){
 //XXX this will be replaced by polling names from participants list 	   		   	
 	   	var k=1;
 	   	var docuListCols = new Array();
-		for(var i=0; i < data.groupnames.length; i++) {
-			$("#grp-tabs").children("ul").append('<li><a href="#grp-'+ (i+1) + '">' + data.groupnames[i] + '</a></li>');
+	   	var groupnames = getClearNames(data.groupnames);
+		for(var i=0; i < groupnames.length; i++) {
+			$("#grp-tabs").children("ul").append('<li><a href="#grp-'+ (i+1) + '">' + groupnames[i] + '</a></li>');
 			$("#grp-tabs").append('<div id="grp-'+ (i+1) + '"></div>');
-			$("#grp-tabs-2").children("ul").append('<li><a href="#grp2-'+ (i+1) + '">' + data.groupnames[i] + '</a></li>');
+			$("#grp-tabs-2").children("ul").append('<li><a href="#grp2-'+ (i+1) + '">' + groupnames[i] + '</a></li>');
 			$("#grp-tabs-2").append('<div><div id="grp2-'+ (i+1) + '"><div/></div>');
 			$("#grp2-"+ (i+1)).append('<table id="docuTable-'+ (i+1) + '" class="cell-border stripe docuTable" cellspacing="0" width="100%"><thead><tr id="docuTable-h-'+ (i+1) + '"><th>framework</th><th>id</th><th>category</th><th>assignment</th><th>mat</th><th><p style="width:460px;">Inhalt</p></th><th>src</th><th>level</th></tr></thead><tbody></tbody></table>');
 //<ul><li><a href="#">Leader</a></li><li><a href="#">Like</a></li><li><a href="#">Bully</a></li></ul>
-			clearNames = data.names[i];
-			var len = clearNames.length;
+			// here we decrypt the names and cache them
+			clearNames.push.apply(clearNames, getClearNames(data.labels[i]));
+			var len = data.labels[i].length;
+			actorIds.push.apply(actorIds, data.actorIds[i]);
+			actorGroups.push.apply(actorGroups, data.actorGroup[i]);
+			// ---
 			docuListColumIdx.push(new Array());
 			docuListCols.push(docuListCol0.slice(0));
 			for(var j=0; j < len; j++) {
 				docuListColumIdx[0].push(k + docuListColumOffset);
 				docuListColumIdx[i+1].push(k + docuListColumOffset);
 				//add the names to the column config
-				$("#grp-"+ (i+1)).append('<input type="checkbox" name="e-g0[]" class="inputFormNames logbookNames" value="' + clearNames[j] + '" id="g0_'+ k + '" /><label for="g0_'+ k + '">' + clearNames[j] + '</label>');
-				$("#docuTable-h-"+ (i+1)).append('<th><div class="rotate">' + clearNames[j] + '</div><input type="checkbox" style="display:none" name="e-g0[]" class="docuTableNames gT' +i+ '" value="' + clearNames[j] + '" id="gA_'+ (totalNameCount+j) + '" /></th>');
-				$("#grp-"+ (i+1)).append('<input type="checkbox" name="e-gX[]" class="inputFormXNames red logbookNames" value="' + clearNames[j] + '" id="gX_'+ k + '" onclick="$(this).prev().prop(\'checked\', !this.checked).button(\'refresh\');" /><label for="gX_'+ k + '">+</label>');
+				$("#grp-"+ (i+1)).append('<input type="checkbox" name="e-g0[]" class="inputFormNames logbookNames" title="' + clearNames[totalNameCount+j] + '" value="' + actorIds[totalNameCount+j] + '" id="g0_'+ k + '" /><label for="g0_'+ k + '">' + clearNames[totalNameCount+j] + '</label>');
+				$("#docuTable-h-"+ (i+1)).append('<th><div class="rotate">' + clearNames[totalNameCount+j] + '</div><input type="checkbox" style="display:none" name="e-g0[]" class="docuTableNames gT' +i+ '" title="' + clearNames[totalNameCount+j] + '" value="' + actorIds[totalNameCount+j] + '" id="gA_'+ (totalNameCount+j) + '" /></th>');
+				$("#grp-"+ (i+1)).append('<input type="checkbox" name="e-gX[]" class="inputFormXNames red logbookNames" title="' + clearNames[totalNameCount+j] + '" value="' + actorIds[totalNameCount+j] + '" id="gX_'+ k + '" onclick="$(this).prev().prop(\'checked\', !this.checked).button(\'refresh\');" /><label for="gX_'+ k + '">+</label>');
 				//remember the names for the dokutable column config
-				docuListCols[i].push({data: j+8, visible: true, searchable: false, name: clearNames[j], className: "gT"+i });
+				docuListCols[i].push({data: j+8, visible: true, searchable: false, name: clearNames[totalNameCount+j], className: "gT"+i });
 				//XXX - broken? / not working? XXX - add the refresh for selected actors
 				$("#g0_"+k)
 					.button({ icons: {primary: null, secondary: null} })
+//					.button({ icons: {primary: 'ui-icon-demo'+k}, text: false })
 					.click(function(){
 						// XXX now for all visible
 						//if ($( "#showList" ).accordion( "option", "active" ) !== false) // if the table is visible - now for all
 			        	//now refresh what's already documented for today in the action table
-			    			resetActionTable ('&groups=');	
+			        		resetActionTable ('&groups=');
 		    		 });
 		    	$("#gX_"+k)
         			.button({
@@ -1250,27 +1351,22 @@ $(function(){
 				         return false;
 				        });
 				// if we are in single student mode we want to lock the input to that student
-				if (aStudent == clearNames[j]) 
+				if (aStudent == actorIds[totalNameCount+j]) 
 					$("#g0_"+ k ).prop('checked', true).button( "refresh" );
-		    	if ((aStudent.length < 1) || (aStudent == clearNames[j])) {
-			        $("#accordion-auswertung").append('<h3>' + clearNames[j] + '</h3><div class="graphSection1" style="overflow:auto;" name="' + clearNames[j].replace(/ /g,"-") + '" ></div>'); 
-			        $("#accordion-pensenbook").append('<h3>' + clearNames[j] + '</h3><div class="pensenbookSection1" name="' + clearNames[j].replace(/ /g,"-") + '" ></div>'); 			        
-			        $("#accordion-diary").append('<h3>' + clearNames[j] + '</h3><div class="diarySection1" name="' + clearNames[j].replace(/ /g,"-") + '" ><table id="detailDiary'+clearNames[j].replace(/ /g,"-")+'" class="cell-border stripe docuTable detailTable" cellspacing="0" width="100%"><thead><tr><th>am</th><th>in</th><th>mit</th><th>womit / was</th><th>aufgabe / warum</th><th>Beobachtung</th><th>zuordnung</th><th>lang</th><th>Kategorie</th></tr></thead><tbody></tbody></table></div>'); 			        
+		    	if ((aStudent < 1) || (aStudent == actorIds[totalNameCount+j])) {
+			        $("#accordion-auswertung").append('<h3 id="analyse_' + actorIds[totalNameCount+j] + '">' + clearNames[totalNameCount+j] + '</h3><div class="graphSection1" style="overflow:auto;" name="' + actorIds[totalNameCount+j] + '" ></div>'); 
+			        $("#accordion-pensenbook").append('<h3 id="pensen_' + actorIds[totalNameCount+j] + '">' + clearNames[totalNameCount+j] + '</h3><div class="pensenbookSection1" name="' + actorIds[totalNameCount+j] + '" ></div>'); 			        
+			        $("#accordion-diary").append('<h3 id="diary_' + actorIds[totalNameCount+j] + '">' + clearNames[totalNameCount+j] + '</h3><div class="diarySection1" name="' + actorIds[totalNameCount+j] + '" ><table id="detailDiary'+actorIds[totalNameCount+j]+'" class="cell-border stripe docuTable detailTable" cellspacing="0" width="100%"><thead><tr><th>am</th><th>in</th><th>mit</th><th>womit / was</th><th>aufgabe / warum</th><th>Beobachtung</th><th>zuordnung</th><th>lang</th><th>Kategorie</th></tr></thead><tbody></tbody></table></div>'); 			        
 			        diaryListTables.push(null); // placeholder for the diary data tables 
-			        $("#accordion-plan").append('<h3>' + clearNames[j] + '</h3><div class="planSection1" name="' + clearNames[j].replace(/ /g,"-") + '" ><div id="detailPlan'+clearNames[j].replace(/ /g,"-")+'"></div><br/><table><tr><td><input readonly="true" type="hidden" id="planCalUrl'+clearNames[j].replace(/ /g,"-")+'" value="'+window.location.protocol + "//" + window.location.host + "/ActionCal.php?action=iCal&t="+token+'&actor=' + clearNames[j].replace(/ /g,"-") + '&phase="><input readonly="true" type="text" width="100%" id="planCalParts'+clearNames[j].replace(/ /g,"-")+'" value="'+data.settings.join(',')+'" /></td><td><div id="copyCalUrl'+clearNames[j].replace(/ /g,"-")+'" alt="copy iCal">iCal</div></td></tr></table></div>'); 		    		
+			        $("#accordion-plan").append('<h3 id="plan_' + actorIds[totalNameCount+j] + '">' + clearNames[totalNameCount+j] + '</h3><div class="planSection1" name="' + actorIds[totalNameCount+j] + '" ><div id="detailPlan'+actorIds[totalNameCount+j]+'"></div><br/><table><tr><td><input readonly="true" type="hidden" id="planCalUrl'+actorIds[totalNameCount+j]+'" value="'+window.location.protocol + "//" + window.location.host + "/ActionCal.php?action=iCal&t="+token+'&actor=' + actorIds[totalNameCount+j] + '&phase="><input readonly="true" type="text" width="100%" id="planCalParts'+actorIds[totalNameCount+j]+'" value="'+data.settings.join(',')+'" /></td><td><div id="copyCalUrl'+actorIds[totalNameCount+j]+'" alt="copy iCal">iCal</div></td></tr></table></div>'); 		    		
 			        planListTables.push(null); // placeholder for the diary data tables 
 		    	}
 				k++;
 			}
-			//count all names and add to dataTable column list
-			totalNameCount = totalNameCount + len;
 			$("#grp-"+ (i+1)).append('<input type="checkbox" id="g0_all_'+ (i+1) + '" onclick="$(this).siblings( \':input\' ).prop(\'checked\', this.checked).button(\'refresh\');" /><label for="g0_all_'+ (i+1) + '">' + data.all + '</label>');			
 // broken			$("#grp-"+ (i+1)).append('<input type="checkbox" id="g0_all_'+ (i+1) + '" onclick="$(this).siblings( \':input[name=\"e-g0\\[\\]\"]\' ).prop(\'checked\', this.checked).button(\'refresh\');" /><label for="g0_all_'+ (i+1) + '">' + data.all + '</label>');			
 			$( "#grp-" + (i+1) ).buttonset();
 			$( "#grp2-" + (i+1) ).buttonset();
-//			$( "#grp-" + (i+1) ).buttonset({
-//				  icons: {primary: 'ui-icon-crown1', secondary: 'ui-icon-crown2'}, text: false
-//			});
 			$( "#g0_all_" + (i+1)).button();
 			//adding the user data from didaktische Reihe to the grid
 			$("#docuTable-"+ (i+1)).show(0, function() {
@@ -1282,9 +1378,9 @@ $(function(){
 						  paging: false,
 					      ordering: false,
 					      ajax: {
-					      	url: home + 'CompetencyList.php?action=grid&t='+token+'&names=' + clearNames.join(','),
+					      	url: home + 'CompetencyList.php?action=grid&t='+token+'&names=' + data.actorIds[i].join(','),
 			        	    type: 'GET',
-			            	data : function(d) { d.columns = null; d.order = null; } // not push column info
+			            	data: function(d) { d.columns = null; d.order = null; } // not push column info
 				          },
 					      columns: docuListCols[i],
 					      drawCallback: function ( settings ) {
@@ -1339,7 +1435,9 @@ $(function(){
 		        		$("#inputCategory").val(sData[2]);	
 	    	    		$(this).addClass( 'highlight' );
 	    			}			   		        
-		    });		
+		    });
+			//count all names and add to dataTable column list
+			totalNameCount = totalNameCount + len;
 		}			   		        
 		
 		//now addign the refresh
@@ -1353,21 +1451,20 @@ $(function(){
     	$( "#accordion-auswertung" ).accordion({
         	heightStyle: "content",
         	collapsible: true, 
-        	active: aStudent.length > 0
+        	active: aStudent > 0
     	 }); 
     	$( "#accordion-pensenbook" ).accordion({
         	heightStyle: "content",
         	collapsible: true, 
-        	active: aStudent.length > 0
+        	active: aStudent > 0
     	 }); 
     	// create diary
     	$( "#accordion-diary" ).accordion({
         	heightStyle: "content",
         	collapsible: true, 
-        	active: aStudent.length > 0,
+        	active: aStudent > 0,
         	beforeActivate: function( event, ui ) {
-	    		var actor = ui.newHeader.text();
-  				var name = actor.replace(/ /g,"-");
+	    		var name = $(ui.newHeader).attr("id").split("_")[1];
   				var aIdx =  ui.newHeader.index() / 2;
   				if (diaryListTables[aIdx] != null) {
   					diaryListTables[aIdx].ajax.reload();
@@ -1379,9 +1476,22 @@ $(function(){
 					  paging: false,
 				      ordering: true,
 				      ajax: {
-				      	url: home + 'ActionList.php?action=detail&actor='+actor+'&t=' + token,
+				      	url: home + 'ActionList.php?action=detail&actor='+name+'&t=' + token,
 			            type: 'GET'
 			          },
+			          columnDefs: [{
+			                  render: function ( data, type, row ) {
+			                  	//Display Clearnames instead of id's
+			                  	  var ids = data.split(",");
+			                  	  var anz = ids.length;
+			                  	  var names = [];
+			                  	  for (idx = 0; idx < anz; ++idx) {
+			                  		 names.push( clearNames[ actorIds.indexOf( ids[ idx ] ) ] );
+			                  	  }
+			                      return names.join(", ");
+			                   },
+			                  targets: 2
+			              }],
 			          // autoWidth: false,
 			     	  // columns: [{width: "6%"},{width: "6%"},{width: "12%"},{width: "12%"},{width: "20%"},{width: "20%"},{width: "5%"},{width: "4%"},{width: "8%"}],
 			     	  scrollX: "95%",
@@ -1403,10 +1513,9 @@ $(function(){
     	$( "#accordion-plan" ).accordion({
         	heightStyle: "content",
         	collapsible: true, 
-        	active: aStudent.length > 0,
+        	active: aStudent > 0,
         	beforeActivate: function( event, ui ) {
-	    		var actor = ui.newHeader.text();
-  				var name = actor.replace(/ /g,"-");
+        		var name = $(ui.newHeader).attr("id").split("_")[1];
   				var aIdx =  ui.newHeader.index() / 2;
   				if (planListTables[aIdx] != null) {
   					planListTables[aIdx].fullCalendar( 'refetchEvents' );
@@ -1460,7 +1569,7 @@ $(function(){
 		for(var i=0; i < data.settings.length; i++) {
 			if (i > 0) checked = "";
 			$("#settingRadio").append('<input type="radio" name="e-g2" ' + checked + ' value="' + data.settings[i] + '" id="g2_'+ (i+1) + '" /><label for="g2_'+ (i+1) + '">' + data.settings[i] + '</label>');
-			$("#settingRadio2").append('<input type="radio" name="e-g2" ' + checked + ' value="' + data.settings[i] + '" id="r2_'+ (i+1) + '" /><label for="r2_'+ (i+1) + '">' + data.settings[i] + '</label>');
+			$("#settingRadio2").append('<input type="radio"  name="e-g2" ' + checked + ' value="' + data.settings[i] + '" id="r2_'+ (i+1) + '" /><label for="r2_'+ (i+1) + '">' + data.settings[i] + '</label>');
 			$("#settingCheckbox").append('<input type="checkbox" name="x-g2" ' + checked + ' value="' + data.settings[i] + '" id="x2_'+ (i+1) + '" /><label for="x2_'+ (i+1) + '">' + data.settings[i] + '</label>');
 		}
 		$( "#settingRadio").buttonset();
@@ -1600,7 +1709,7 @@ $(function(){
         	$('#inputTags_1').tagit({
           		availableTags: data.Records,
           		allowSpaces: true, 
-			  	showAutocompleteOnFocus: true
+			  	showAutocompleteOnFocus: false
       		});
         	$('#entry_inv_name').tagit({
           		availableTags: data.Records,
@@ -1654,7 +1763,16 @@ $(function(){
 	var detailTags = new Array();
 	var bemerkungTags = new Array();
 	var monthList = new Array();
-	
+
+	//details		
+	var jqxhr2 = $.getJSON(home + 'EvidenceList.php?action=list&t=' + token, {}, function(data2) {
+	       		$('#inputTags_2').tagit({
+         			availableTags: data2.Records,
+         			allowSpaces: true, 
+    			  	showAutocompleteOnFocus: false
+     			});
+			});
+
 	// get all the tags for the ui
 	var jqxhr4 = $.getJSON(home + 'loadConfig.php?action=tags&t=' + token, {}, function(data) {
 		//categories --- may be replaced soon
@@ -1664,36 +1782,7 @@ $(function(){
 		    allowSpaces: true, 
 		  	showAutocompleteOnFocus: true
 		});
-		//details		
-		detailTags = data.detail;
-		// SSS if not secundaria mode
-		if (data.lookupEvidence) {
-				var jqxhr2 = $.getJSON(home + 'EvidenceList.php?action=list&t=' + $('#acc-token').val() + '&groups=' + $('#group-id').val(), {}, function(data2) {
-		       		$('#inputTags_2').tagit({
-	         			availableTags: data2.Records,
-	         			allowSpaces: true, 
-	    			  	showAutocompleteOnFocus: true
-	     			});
-				});
-			} else {
-				$('#inputTags_2').tagit({
-			    	availableTags: detailTags,
-			    	allowSpaces: true, 
-				  	showAutocompleteOnFocus: true
-				});
-			}
-		//remarks
-		bemerkungTags = data.remark;
-		$('#inputTags_3').tagit({
-		    availableTags: bemerkungTags,
-		    allowSpaces: true, 
-		  	showAutocompleteOnFocus: true
-		});
-		$('#inputTags_23').tagit({
-		    availableTags: bemerkungTags,
-		    allowSpaces: true, 
-		  	showAutocompleteOnFocus: true
-		});
+		//month list
 		monthList = data.month;
 	});
 	
@@ -1829,7 +1918,7 @@ $("#addActionEntry").submit(function(event){
         //now show me what's already documented for today in the action table
     	resetActionTable ('&groups=');	
 		// if we are in single student mode we want to lock the input to that student
-		if (aStudent.length > 0) 
+		if (aStudent > 0) 
 			$("input[value='"+ aStudent +"'][name='e-g0[]']").prop('checked', true).button( "refresh" );
     });
 
@@ -2003,9 +2092,9 @@ $("#addInventory").submit(function(event){
 	    $.ajax({
 	        type:"GET",
 	        cache:false,
-	        url: home + 'ActorList.php&t=' + token,
+	        url: home + 'ActorList.php',
 	    	dataType: 'json',
-	        data : { action : 'insert', groupId : groupId, groupName: gNameEncrypt, tutorNames : tutorNames, actorNames : actorNames, otherNames : otherNames },
+	        data: { t: token, action: 'insert', groupId: groupId, groupName: gNameEncrypt, tutorNames: tutorNames, actorNames: actorNames, otherNames: otherNames },
 	        success: function (result) {
 	        	//if it's in the database secure the new salt         
 	        	storeTheSalt(result.GroupToken, newSalt);
@@ -2192,43 +2281,43 @@ $(document).ready(function() {
 		    // insert the html for the section analysis before it get's opened
 		    
 		    $( "#accordion-auswertung" ).on( "accordionbeforeactivate", function( event, ui ) {
-		    	var actor = ui.newHeader.text();	    	
-		    	var currentName = ui.newHeader.next().attr('name');
-				if ( $('#sumGraph'+currentName).length < 1)
+		    	var name = $(ui.newHeader).attr("id").split("_")[1];
+		    	var label = ui.newHeader.text();	    	
+				if ( $('#sumGraph'+name).length < 1)
 		    		ui.newHeader.next().append('<h4>was wann</h4><table class="invisible"><tr><td valign="top" width="200">'+
-	  					'<div id="sumGraph'+currentName+'" style="width:240px;height:240px"></div><br />'+
+	  					'<div id="sumGraph'+name+'" style="width:240px;height:240px"></div><br />'+
 	  		    		'</td><td valign="top" width="*">'+
-	  		  			'<div id="phaseGraph'+currentName+'" style="height:240px"></div><br />'+
+	  		  			'<div id="phaseGraph'+name+'" style="height:240px"></div><br />'+
 	  		 			'</td></tr></table>'+
 	  		 		 	'<h4>womit</h4>'+
-	  		 		  	'<div id="materialGraph'+currentName+'" style="width:100%;height:360px"></div><br />'+
+	  		 		  	'<div id="materialGraph'+name+'" style="width:100%;height:360px"></div><br />'+
 	  		 		 	'<h4>inhaltlich</h4>'+
-	  		 		  	'<div id="categoryGraph'+currentName+'" style="width:100%;height:360px"></div><br />'+
+	  		 		  	'<div id="categoryGraph'+name+'" style="width:100%;height:360px"></div><br />'+
 	  		 		 	'<h4>mit wem</h4>'+
-			 		  	'<div id="collaborateGraph'+currentName+'" style="width:100%;height:360px"></div><br />'
+			 		  	'<div id="collaborateGraph'+name+'" style="width:100%;height:360px"></div><br />'
 					);
 	        });
 		 
 			 // insert the html for the pensenbook generation before it get's opened
 			$( "#accordion-pensenbook" ).on( "accordionbeforeactivate", function( event, ui ) {
-			    	var actor = ui.newHeader.text();	    	
-			    	var currentName = ui.newHeader.next().attr('name');
-					if ( $('#printPensen'+currentName).length < 1)
+					var name = $(ui.newHeader).attr("id").split("_")[1];
+					var label = ui.newHeader.text();	    	
+					if ( $('#printPensen'+name).length < 1)
 			    		ui.newHeader.next().append(
-			    			'<form id="formPensen'+currentName+'">'+
-			    			'<div id="pensenOutput'+currentName+'" style="width:100%" ></div>'+
+			    			'<form id="formPensen'+name+'">'+
+			    			'<div id="pensenOutput'+name+'" style="width:100%" ></div>'+
 			    	// XXX text needs to be configurable
-			    			'<div id="printPensen'+currentName+'">Pensenbuch Stub erzeugen</div><br />'+
+			    			'<div id="printPensen'+name+'">Pensenbuch Stub erzeugen</div><br />'+
 			    			'<h4>basierend auf Kompetenzauswahl</h4>'+
-				 		  	'<div id="competencyAccordion'+currentName+'" style="width:100%;height:auto"><div id="competencyTable" style="width:100%;height:auto" /></div><br />'+
+				 		  	'<div id="competencyAccordion'+name+'" style="width:100%;height:auto"><div id="competencyTable" style="width:100%;height:auto" /></div><br />'+
 				 		  	'</form>'
 						);	 
 					//add the create button
-					$("#printPensen"+currentName)
+					$("#printPensen"+name)
 						.button()
 						.click(function() {
 							var output = "";
-							var itemList = $("#competencyAccordion"+currentName).fancytree("getTree").getSelectedNodes(false);
+							var itemList = $("#competencyAccordion"+name).fancytree("getTree").getSelectedNodes(false);
 							itemList.forEach(function(entry) {
 								var level = entry.getLevel();
 								if (entry.isFolder()) {
@@ -2236,10 +2325,10 @@ $(document).ready(function() {
 								} else
 									output = output + entry.title + "\n";
 							});
-							$('#pensenOutput'+currentName).html(output).prop('contenteditable',true);
+							$('#pensenOutput'+name).html(output).prop('contenteditable',true);
 	      				});
 		            //add the competency visualization
-		             $("#competencyAccordion"+currentName).fancytree({
+		             $("#competencyAccordion"+name).fancytree({
 		            	 extensions: ["glyph"],
 		            	 autoCollapse: false,
 		            	 checkbox: true,
@@ -2266,7 +2355,7 @@ $(document).ready(function() {
 		            	      },
 		            	 source: {
 	      					// XXX group-id needs to be replaced with individual groups
-	        					url: home + "CompetencyList.php?action=query&actor=" + currentName + "&framework=&t=" + $('#acc-token').val()
+	        					url: home + "CompetencyList.php?action=query&actor=" + name + "&framework=&t=" + $('#acc-token').val()
 							}
 	    			 });		 
 			});
@@ -2275,7 +2364,8 @@ $(document).ready(function() {
 			$( "#accordion-auswertung" ).on( "accordionactivate", function( event, ui ) {
 		        
 		        // find the URL in the link right next to us
-		        var actor = ui.newHeader.text();
+		        var name = $(ui.newHeader).attr("id").split("_")[1];
+		        var label = ui.newHeader.text();
 		        var phase = "";
 		        $("input:checkbox[name=x-g2]:checked").each(function()
 		        		{
@@ -2289,7 +2379,7 @@ $(document).ready(function() {
 		        			subject = subject + "'" + $(this).val() + "'";
 		        		});
 		        var daterange = $( "#datesRange" ).val();
-		        var dataurl = home + 'AnalysisList.php?action=material&actor=' + actor + '&t=' + token + '&phase=' + phase + '&subject=' + subject + '&range=' + daterange ;
+		        var dataurl = home + 'AnalysisList.php?action=material&actor=' + name + '&t=' + token + '&phase=' + phase + '&subject=' + subject + '&range=' + daterange ;
 		        // then fetch the data with jQuery
 		        function onDataReceived(series) {      
 //alert(series.query);		        	
