@@ -5,7 +5,7 @@ This is the source of the "Lernen ist Persönlich" project, co-funded in parts b
 
 The home-page of the project is http://lip-app.eu, news can be fount on our blog http://lernen-ist-persoenlich.blogspot.co.at
 
-The App is developed by Verein Offenes Lernen, ZVR 066113569 licensed by "Creative Commons Namensnennung - Nicht-kommerziell - Weitergabe unter gleichen Bedingungen 4.0 International Lizenz", Austria. Instead of CC a GPLv2 license might be applied, as attached to this repository.
+The App is developed by Verein Offenes Lernen, ZVR 066113569 licensed by "Creative Commons Namensnennung - Nicht-kommerziell - Weitergabe unter gleichen Bedingungen 3.0 International Lizenz", Austria. Instead of CC a GPLv2 license might be applied, as attached to this repository. Other licenses can be granted upon request.
 
 This repository contains the code for the app and everything that is required to improve it. For documentation please have a look at the app's blog http://lernen-ist-persoenlich.blogspot.co.at/search/label/Dokumentation
 
